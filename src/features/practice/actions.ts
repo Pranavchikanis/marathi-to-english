@@ -214,13 +214,10 @@ export const startSession = withErrorHandling(async (): Promise<ActionResult<unk
   
   const serviceClient = createServiceClient()
   
-  const { data: student, error: studentError } = await serviceClient
-    .from('students')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single();
+  const { ensureStudentProfile } = await import('@/lib/auth/student');
+  const student = await ensureStudentProfile(user.id);
     
-  if (studentError || !student) {
+  if (!student) {
     throw new AppError('Student profile not found', 'INTERNAL_SERVER_ERROR');
   }
 
@@ -256,14 +253,11 @@ export const resumeSession = withErrorHandling(async (): Promise<ActionResult<un
 
   const serviceClient = createServiceClient()
   
-  const { data: student } = await serviceClient
-    .from('students')
-    .select('id')
-    .eq('auth_user_id', user.id)
-    .single();
+  const { ensureStudentProfile } = await import('@/lib/auth/student');
+  const student = await ensureStudentProfile(user.id);
     
   if (!student) {
-    throw new NotFoundError('Student profile not found');
+    throw new AppError('Student profile not found', 'INTERNAL_SERVER_ERROR');
   }
 
   const { SessionService } = await import('./services/session.service');

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Flame, Trophy } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { ensureStudentProfile } from "@/lib/auth/student"
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,11 +14,7 @@ export default async function DashboardPage() {
   let streak = 0;
 
   if (user) {
-    const { data: student } = await (supabase.from('students') as any)
-      .select('display_name, total_xp, current_streak')
-      .eq('auth_user_id', user.id)
-      .single();
-
+    const student = await ensureStudentProfile(user.id);
     if (student) {
       studentName = student.display_name || "Student";
       totalXp = student.total_xp || 0;
