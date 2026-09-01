@@ -122,7 +122,12 @@ export function usePracticeSession() {
       }
 
       if ((result.data as any)?.status === 'EXERCISE_READY') {
-        dispatch({ type: 'SET_EXERCISE_READY', exercise: (result.data as any).currentExercise as SessionExercise })
+        const nextEx = (result.data as any).currentExercise as SessionExercise;
+        if (nextEx) {
+          dispatch({ type: 'SET_EXERCISE_READY', exercise: nextEx })
+        } else {
+          dispatch({ type: 'SET_ERROR', error: 'Could not generate an exercise. Please try again later.' })
+        }
       }
     } finally {
       isTransitioningRef.current = false;
@@ -142,7 +147,12 @@ export function usePracticeSession() {
       }
 
       if ((result.data as any)?.status === 'EXERCISE_READY') {
-        dispatch({ type: 'SET_EXERCISE_READY', exercise: (result.data as any).currentExercise as SessionExercise })
+        const nextEx = (result.data as any).currentExercise as SessionExercise;
+        if (nextEx) {
+          dispatch({ type: 'SET_EXERCISE_READY', exercise: nextEx })
+        } else {
+          dispatch({ type: 'SET_ERROR', error: 'Could not generate an exercise. Please try again later.' })
+        }
       } else if ((result.data as any)?.status === 'NOT_FOUND') {
         // We bypass the reducer for setting NOT_STARTED since it's the initial state 
         // For testing we need a way, but since it's initial we just don't have a transition for it.
