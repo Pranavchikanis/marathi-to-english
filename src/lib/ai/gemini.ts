@@ -137,3 +137,36 @@ Ensure the sentences vary in structure, vocabulary, and context (e.g. casual, fo
 
   return JSON.parse(text);
 }
+
+export async function generateNextCurriculumTopic(learnedTopics: string[]) {
+  const ai = getRandomGenAIClient();
+  const systemInstruction = `You are an expert English curriculum designer for Marathi speakers.
+The student has already learned the following English grammatical concepts:
+${learnedTopics.length > 0 ? learnedTopics.map(t => `- ${t}`).join('\n') : "None (Absolute Beginner)"}
+
+Based on this, what is the SINGLE MOST LOGICAL next grammatical concept they should learn?
+Return a JSON object with this exact interface:
+{
+  "name": "Short name of the concept (e.g. 'Present Continuous Tense' or 'Basic Greetings')",
+  "description": "A short, one-sentence description of what this teaches"
+}
+
+Do not return anything other than the JSON object.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.5-flash',
+    contents: 'Generate the next curriculum topic as JSON.',
+    config: {
+      systemInstruction,
+      responseMimeType: 'application/json',
+      temperature: 0.7,
+    }
+  });
+
+  const text = response.text;
+  if (!text) {
+    throw new Error('Gemini returned empty response for curriculum topic');
+  }
+
+  return JSON.parse(text) as { name: string, description: string };
+}

@@ -48,16 +48,46 @@ export class CurriculumService {
     const coreConcepts = masteryList.filter(m => m.status === 'INTRODUCED' || m.status === 'DEVELOPING' || m.status === 'PRACTICING').map(m => m.concept_id);
     const reviewConcepts = masteryList.filter(m => m.status === 'NEEDS_REVIEW').map(m => m.concept_id);
 
-    // If student is brand new (no core concepts), default to Stage 1 concepts
+    // If student is out of core concepts, let AI generate the next topic
     if (coreConcepts.length === 0) {
-      const { data: stages } = await (supabase.from('curriculum_stages') as any).select('id').eq('level_number', 1).limit(1).single();
-      if (stages) {
-        const { data: stageConcepts } = await (supabase.from('concepts') as any).select('id').eq('stage_id', (stages as any).id);
-        if (stageConcepts && Array.isArray(stageConcepts)) {
-          for (const c of stageConcepts) {
-            if (c && c.id) coreConcepts.push(c.id);
+      try {
+        const { generateNextCurriculumTopic } = await import('@/lib/ai/gemini');
+        
+        // 1. Fetch all concepts the student has ever seen from their mastery profile
+        const { data: allSeenConcepts } = await (supabase.from('mastery') as any)
+          .select('concepts(name)')
+          .eq('student_id', studentId);
+        
+        const learnedTopics = (allSeenConcepts || []).map((m: any) => m.concepts?.name).filter(Boolean);
+        
+        // 2. Ask AI to generate next topic
+        const newTopic = await generateNextCurriculumTopic(learnedTopics);
+        
+        // 3. Find the student's current stage to attach it to
+        const { data: student } = await (supabase.from('students') as any)
+          .select('current_stage_id')
+          .eq('id', studentId)
+          .single();
+          
+        if (student?.current_stage_id) {
+          // 4. Insert into database
+          const { data: insertedConcept } = await (supabase.from('concepts') as any)
+            .insert({ stage_id: student.current_stage_id, name: newTopic.name, description: newTopic.description })
+            .select('id')
+            .single();
+            
+          if (insertedConcept?.id) {
+            coreConcepts.push(insertedConcept.id);
+            // Initialize mastery for this new concept
+            await (supabase.from('mastery') as any).insert({
+              student_id: studentId,
+              concept_id: insertedConcept.id,
+              status: 'INTRODUCED'
+            });
           }
         }
+      } catch (e) {
+        console.error("Failed to dynamically generate next concept:", e);
       }
     }
 
