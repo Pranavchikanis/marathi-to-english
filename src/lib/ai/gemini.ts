@@ -112,9 +112,12 @@ export async function generateEvaluationContent(systemInstruction: string, conte
   }
 }
 
-export async function generateInfiniteExercises(conceptName: string, count: number = 10) {
-  const ai = getRandomGenAIClient();
-  const systemInstruction = `You are an expert Marathi and English linguist creating practice exercises for a language learning app.
+export async function generateInfiniteExercises(conceptName: string, count: number = 10, maxRetries = 3) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const ai = getRandomGenAIClient();
+      const systemInstruction = `You are an expert Marathi and English linguist creating practice exercises for a language learning app.
 The user is learning English from Marathi.
 Generate exactly ${count} diverse and realistic sentences that teach the concept: "${conceptName}".
 Format the output as a JSON array of objects. Each object must exactly match this interface:
@@ -126,27 +129,40 @@ Format the output as a JSON array of objects. Each object must exactly match thi
 
 Ensure the sentences vary in structure, vocabulary, and context (e.g. casual, formal, questions, statements). Keep it highly contextual.`;
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.5-flash',
-    contents: 'Generate the exercises as JSON.',
-    config: {
-      systemInstruction,
-      responseMimeType: 'application/json',
-      temperature: 0.7,
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: 'Generate the exercises as JSON.',
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        }
+      });
+
+      const text = response.text;
+      if (!text) {
+        throw new Error('Gemini returned empty response for infinite exercises');
+      }
+
+      return JSON.parse(text);
+    } catch (error: any) {
+      attempt++;
+      if (attempt >= maxRetries) {
+        throw error;
+      }
+      // Wait for a short exponential backoff before retrying
+      await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
     }
-  });
-
-  const text = response.text;
-  if (!text) {
-    throw new Error('Gemini returned empty response for infinite exercises');
   }
-
-  return JSON.parse(text);
+  throw new Error("Failed to generate exercises after retries");
 }
 
-export async function generateNextCurriculumTopic(learnedTopics: string[]) {
-  const ai = getRandomGenAIClient();
-  const systemInstruction = `You are an expert English curriculum designer for Marathi speakers.
+export async function generateNextCurriculumTopic(learnedTopics: string[], maxRetries = 3) {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const ai = getRandomGenAIClient();
+      const systemInstruction = `You are an expert English curriculum designer for Marathi speakers.
 The student has already learned the following English grammatical concepts:
 ${learnedTopics.length > 0 ? learnedTopics.map(t => `- ${t}`).join('\n') : "None (Absolute Beginner)"}
 
@@ -159,20 +175,30 @@ Return a JSON object with this exact interface:
 
 Do not return anything other than the JSON object.`;
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.5-flash',
-    contents: 'Generate the next curriculum topic as JSON.',
-    config: {
-      systemInstruction,
-      responseMimeType: 'application/json',
-      temperature: 0.7,
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: 'Generate the next curriculum topic as JSON.',
+        config: {
+          systemInstruction,
+          responseMimeType: 'application/json',
+          temperature: 0.7,
+        }
+      });
+
+      const text = response.text;
+      if (!text) {
+        throw new Error('Gemini returned empty response for curriculum topic');
+      }
+
+      return JSON.parse(text) as { name: string, description: string };
+    } catch (error: any) {
+      attempt++;
+      if (attempt >= maxRetries) {
+        throw error;
+      }
+      // Wait for a short exponential backoff before retrying
+      await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
     }
-  });
-
-  const text = response.text;
-  if (!text) {
-    throw new Error('Gemini returned empty response for curriculum topic');
   }
-
-  return JSON.parse(text) as { name: string, description: string };
+  throw new Error("Failed to generate concept after retries");
 }
