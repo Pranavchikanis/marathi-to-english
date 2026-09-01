@@ -40,9 +40,9 @@ export async function login(formData: FormData) {
   return redirect('/dashboard');
 }
 
-export async function signup(formData: FormData) {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+export async function autoLogin() {
+  const email = 'student@tejaswini.app';
+  const password = 'tejaswini-student-pass123';
 
   const cookieStore = await cookies();
   const supabase = createServerClient<Database>(
@@ -63,13 +63,20 @@ export async function signup(formData: FormData) {
     }
   );
 
-  const { error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
-    return redirect(`/login?error=${error.message}`);
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    
+    if (signUpError) {
+      return redirect(`/login?error=${signUpError.message}`);
+    }
   }
 
   return redirect('/dashboard');
