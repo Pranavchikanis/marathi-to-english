@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database.types';
 
 export async function ensureStudentProfile(userId: string) {
-  const adminClient = await createClient(); // we use server client
+  const serviceClient = createServiceClient(); // use service client to bypass RLS for inserts
   
-  const { data: student } = await (adminClient.from('students') as any)
+  const { data: student } = await (serviceClient.from('students') as any)
     .select('id, display_name, total_xp, current_streak')
     .eq('auth_user_id', userId)
     .single();
@@ -14,14 +14,14 @@ export async function ensureStudentProfile(userId: string) {
   }
   
   // Create if missing
-  let { data: stage } = await (adminClient.from('curriculum_stages') as any)
+  let { data: stage } = await (serviceClient.from('curriculum_stages') as any)
     .select('id')
     .eq('level_number', 1)
     .single();
     
   if (!stage) {
     // Fallback if no stage 1 exists
-    const { data: newStage } = await (adminClient.from('curriculum_stages') as any)
+    const { data: newStage } = await (serviceClient.from('curriculum_stages') as any)
       .insert({ level_number: 1, name: 'Beginner' })
       .select('id')
       .single();
@@ -29,7 +29,7 @@ export async function ensureStudentProfile(userId: string) {
   }
   
   if (stage) {
-    const { data: newStudent } = await (adminClient.from('students') as any)
+    const { data: newStudent, error: insertError } = await (serviceClient.from('students') as any)
       .insert({
         auth_user_id: userId,
         display_name: 'Student',
@@ -37,6 +37,10 @@ export async function ensureStudentProfile(userId: string) {
       })
       .select('id, display_name, total_xp, current_streak')
       .single();
+      
+    if (insertError) {
+      console.error("Failed to insert student:", insertError);
+    }
       
     return newStudent;
   }
