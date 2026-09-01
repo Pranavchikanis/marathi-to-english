@@ -143,6 +143,39 @@ export class CurriculumService {
         }
       }
 
+      // INFINITE GENERATION FALLBACK
+      if (!selectedId) {
+        const { data: conceptData } = await supabase.from('concepts').select('name').eq('id', conceptId).single();
+        if (conceptData) {
+          try {
+            const { generateInfiniteExercises } = await import('@/lib/ai/gemini');
+            const aiExercises = await generateInfiniteExercises((conceptData as any).name, 5);
+            
+            // Insert them into the DB
+            const { data: inserted } = await (supabase.from('exercises') as any)
+              .insert(aiExercises.map((ex: any) => ({
+                concept_id: conceptId,
+                marathi_prompt: ex.marathi_prompt,
+                reference_translations: ex.reference_translations,
+                difficulty_level: ex.difficulty_level || 1
+              })))
+              .select('id, difficulty_level');
+              
+            if (inserted && inserted.length > 0) {
+              // Find the best match from the newly generated ones
+              const sorted = (inserted as any[]).sort((a, b) => {
+                const diffA = Math.abs((a.difficulty_level || 1) - targetDifficulty);
+                const diffB = Math.abs((b.difficulty_level || 1) - targetDifficulty);
+                return diffA - diffB;
+              });
+              selectedId = sorted[0].id;
+            }
+          } catch (e) {
+            console.error('Failed to generate infinite exercises:', e);
+          }
+        }
+      }
+
       if (selectedId) {
         selectedExercises.push({ exercise_id: selectedId });
         excludedIds.push(selectedId);

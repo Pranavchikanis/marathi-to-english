@@ -61,7 +61,7 @@ function sessionReducer(state: PracticeSessionState, action: Action): PracticeSe
       }
 
     case 'ROLLBACK_TO_READY':
-      if (state.status !== 'EVALUATING') {
+      if (state.status !== 'EVALUATING' && state.status !== 'EVALUATION_SUCCESS') {
          return state;
       }
       return {

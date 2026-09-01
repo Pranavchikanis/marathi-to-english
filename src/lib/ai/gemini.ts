@@ -2,8 +2,20 @@ import { GoogleGenAI } from '@google/genai';
 import { env } from '@/config/env';
 import { GeminiEvaluationSchema } from './schemas/gemini-response.schema';
 
-// Initialized strictly server-side
-const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+function getRandomGenAIClient(): GoogleGenAI {
+  const keysStr = env.GEMINI_API_KEYS;
+  if (!keysStr) {
+    throw new Error('GEMINI_API_KEYS is not defined in environment variables');
+  }
+  
+  const keys = keysStr.split(',').map(k => k.trim()).filter(Boolean);
+  if (keys.length === 0) {
+    throw new Error('No valid keys found in GEMINI_API_KEYS');
+  }
+
+  const randomKey = keys[Math.floor(Math.random() * keys.length)];
+  return new GoogleGenAI({ apiKey: randomKey });
+}
 
 export class GeminiTimeoutError extends Error {
   constructor() {
@@ -42,6 +54,7 @@ export async function generateEvaluationContent(systemInstruction: string, conte
   const timeoutId = setTimeout(() => abortController.abort(new GeminiTimeoutError()), 5000);
 
   try {
+    const ai = getRandomGenAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3.5-flash',
       contents: contents,
@@ -91,4 +104,36 @@ export async function generateEvaluationContent(systemInstruction: string, conte
     // Default to provider error for 5xx and others
     throw new GeminiProviderError(error.message || 'Unknown SDK Error');
   }
+}
+
+export async function generateInfiniteExercises(conceptName: string, count: number = 10) {
+  const ai = getRandomGenAIClient();
+  const systemInstruction = `You are an expert Marathi and English linguist creating practice exercises for a language learning app.
+The user is learning English from Marathi.
+Generate exactly ${count} diverse and realistic sentences that teach the concept: "${conceptName}".
+Format the output as a JSON array of objects. Each object must exactly match this interface:
+{
+  "marathi_prompt": "The Marathi sentence to translate",
+  "reference_translations": ["The primary English translation", "An alternative valid English translation"],
+  "difficulty_level": 1 // integer from 1 to 3
+}
+
+Ensure the sentences vary in structure, vocabulary, and context (e.g. casual, formal, questions, statements). Keep it highly contextual.`;
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-3.5-flash',
+    contents: 'Generate the exercises as JSON.',
+    config: {
+      systemInstruction,
+      responseMimeType: 'application/json',
+      temperature: 0.7,
+    }
+  });
+
+  const text = response.text;
+  if (!text) {
+    throw new Error('Gemini returned empty response for infinite exercises');
+  }
+
+  return JSON.parse(text);
 }
