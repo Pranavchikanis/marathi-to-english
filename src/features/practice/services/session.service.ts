@@ -116,18 +116,16 @@ export class SessionService {
       const conceptId = se.exercises?.concept_id;
 
       attempts.forEach((attempt: any) => {
-        const evaluations = attempt.evaluations || [];
-        evaluations.forEach((evalData: any) => {
-          const grade = evalData.grade;
-          if (grade) {
-            sessionXP += ProgressService.calculateAttemptXp(grade);
-            
-            if (conceptId) {
-              if (!conceptGrades[conceptId]) conceptGrades[conceptId] = [];
-              conceptGrades[conceptId].push(grade);
-            }
+        const evaluation = attempt.evaluations;
+        if (evaluation && evaluation.grade) {
+          const grade = evaluation.grade;
+          sessionXP += ProgressService.calculateAttemptXp(grade);
+          
+          if (conceptId) {
+            if (!conceptGrades[conceptId]) conceptGrades[conceptId] = [];
+            conceptGrades[conceptId].push(grade);
           }
-        });
+        }
       });
     });
 
