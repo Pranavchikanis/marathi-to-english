@@ -162,7 +162,7 @@ export class SessionService {
           profile = {
             student_id: session.student_id,
             concept_id: conceptId,
-            status: 'NOT_INTRODUCED',
+            status: 'INTRODUCED',
             correct_attempts: 0,
             incorrect_attempts: 0,
             last_practiced_at: null,
@@ -236,7 +236,7 @@ export class SessionService {
            const update = masteryUpdates.find(m => m.concept_id === c.id);
            if (update) return { status: update.status };
            const existing = (stageMastery || []).find((m: any) => m.concept_id === c.id);
-           return { status: existing ? existing.status : 'NOT_INTRODUCED' };
+           return { status: existing ? existing.status : 'INTRODUCED' };
         });
 
         if (AdaptiveEngineService.checkProgression(combinedProfiles as any)) {
