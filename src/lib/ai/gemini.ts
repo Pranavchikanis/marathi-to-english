@@ -4,13 +4,19 @@ import { GeminiEvaluationSchema } from './schemas/gemini-response.schema';
 
 function getRandomGenAIClient(): GoogleGenAI {
   const keysStr = env.GEMINI_API_KEYS;
-  if (!keysStr) {
-    throw new Error('GEMINI_API_KEYS is not defined in environment variables');
+  let keys: string[] = [];
+
+  if (keysStr) {
+    keys = keysStr.split(',').map(k => k.trim()).filter(Boolean);
   }
-  
-  const keys = keysStr.split(',').map(k => k.trim()).filter(Boolean);
+
+  // Fallback to single key if multiple keys string is empty or undefined
+  if (keys.length === 0 && env.GEMINI_API_KEY) {
+    keys = [env.GEMINI_API_KEY];
+  }
+
   if (keys.length === 0) {
-    throw new Error('No valid keys found in GEMINI_API_KEYS');
+    throw new Error('No valid keys found in GEMINI_API_KEYS or GEMINI_API_KEY');
   }
 
   const randomKey = keys[Math.floor(Math.random() * keys.length)];
