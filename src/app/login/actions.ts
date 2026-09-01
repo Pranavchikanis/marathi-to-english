@@ -41,9 +41,6 @@ export async function login(formData: FormData) {
 }
 
 export async function autoLogin() {
-  const email = 'student@tejaswini.app';
-  const password = 'tejaswini-student-pass123';
-
   const cookieStore = await cookies();
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -57,12 +54,12 @@ export async function autoLogin() {
     }
   );
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    const { error: signUpError } = await supabase.auth.signUp({ email, password });
-    if (signUpError) {
-      return redirect(`/login?error=${signUpError.message}`);
+  let { data: { session }, error } = await supabase.auth.getSession();
+  
+  if (!session) {
+    const { data, error: signInError } = await supabase.auth.signInAnonymously();
+    if (signInError) {
+      return redirect(`/login?error=${signInError.message}`);
     }
   }
 

@@ -24,6 +24,16 @@ export function EvaluationCard({ evaluation, studentAnswer, errors, onNext, onRe
   const isMajorError = grade === 'D' || grade === 'E'
   const isInvalid = grade === 'F'
 
+  React.useEffect(() => {
+    import('@/lib/utils/audio').then(({ playSuccessSound, playErrorSound }) => {
+      if (isSuccess || isMinorError) {
+        playSuccessSound();
+      } else if (isMajorError || isInvalid) {
+        playErrorSound();
+      }
+    }).catch(e => console.error('Failed to load audio utils', e));
+  }, [grade]);
+
   let accentColor = "border-status-success"
   let Icon = CheckCircle2
   let title = "बरोबर!" // Correct

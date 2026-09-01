@@ -3,6 +3,7 @@ import { PartyPopper } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useRouter } from "next/navigation"
+import confetti from "canvas-confetti"
 
 interface SessionSummaryProps {
   summary: {
@@ -14,6 +15,39 @@ interface SessionSummaryProps {
 
 export function SessionSummary({ summary }: SessionSummaryProps) {
   const router = useRouter()
+
+  React.useEffect(() => {
+    // Play sound
+    import('@/lib/utils/audio').then(({ playCompletionSound }) => {
+      playCompletionSound();
+    }).catch(e => console.error('Failed to load audio utils', e));
+
+    // Trigger confetti
+    const duration = 3 * 1000;
+    const end = Date.now() + duration;
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        colors: ['#4f46e5', '#10b981', '#f59e0b']
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        colors: ['#4f46e5', '#10b981', '#f59e0b']
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] w-full px-4">
