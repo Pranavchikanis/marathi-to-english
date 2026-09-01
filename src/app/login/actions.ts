@@ -75,26 +75,26 @@ export async function autoLogin() {
       { cookies: { get() { return ''; }, set() {}, remove() {} } }
     );
 
-    const { data: student } = await adminClient.from('students').select('id').eq('auth_user_id', authUser.user.id).single();
+    const { data: student } = await (adminClient.from('students') as any).select('id').eq('auth_user_id', authUser.user.id).single();
     
     if (!student) {
-      let { data: stage } = await adminClient.from('curriculum_stages').select('id').eq('level_number', 1).single();
+      let { data: stage } = await (adminClient.from('curriculum_stages') as any).select('id').eq('level_number', 1).single();
       
       if (!stage) {
-        const stageRes = await adminClient.from('curriculum_stages').insert({ level_number: 1, name: 'Beginner' }).select().single();
+        const stageRes = await (adminClient.from('curriculum_stages') as any).insert({ level_number: 1, name: 'Beginner' }).select().single();
         stage = stageRes.data as { id: string };
         
-        const conceptRes = await adminClient.from('concepts').insert({ stage_id: stage.id, name: 'Greetings' }).select().single();
+        const conceptRes = await (adminClient.from('concepts') as any).insert({ stage_id: stage.id, name: 'Greetings' }).select().single();
         const concept = conceptRes.data as { id: string };
         
-        await adminClient.from('exercises').insert([
+        await (adminClient.from('exercises') as any).insert([
           { concept_id: concept.id, marathi_prompt: 'शुभ प्रभात', reference_translations: ['Good morning'], difficulty_level: 1 },
           { concept_id: concept.id, marathi_prompt: 'तू कसा आहेस?', reference_translations: ['How are you?'], difficulty_level: 1 },
           { concept_id: concept.id, marathi_prompt: 'माझे नाव प्रणव आहे', reference_translations: ['My name is Pranav'], difficulty_level: 2 },
         ]);
       }
       
-      await adminClient.from('students').insert({
+      await (adminClient.from('students') as any).insert({
         auth_user_id: authUser.user.id,
         display_name: 'Student',
         current_stage_id: stage.id
