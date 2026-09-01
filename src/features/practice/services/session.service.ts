@@ -240,7 +240,9 @@ export class SessionService {
         });
 
         if (AdaptiveEngineService.checkProgression(combinedProfiles as any)) {
-           nextStageId = student.current_stage_id + 1; // Assuming sequential stage IDs for MVP
+           // We are currently at Stage 1, for MVP demo we won't automatically progress stages yet
+           // because Stage 2 doesn't exist and we can't do math on UUIDs.
+           nextStageId = student.current_stage_id; 
         }
       }
     }
