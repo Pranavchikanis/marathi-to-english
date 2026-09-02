@@ -23,10 +23,17 @@ export class GroqProviderError extends Error {
 }
 
 function getGroqClient(): Groq {
-  if (!env.GROQ_API_KEY) {
-    throw new Error('GROQ_API_KEY is not set');
+  if (!env.GROQ_API_KEYS) {
+    throw new Error('GROQ_API_KEYS is not set');
   }
-  return new Groq({ apiKey: env.GROQ_API_KEY });
+  
+  const keys = env.GROQ_API_KEYS.split(',').map(k => k.trim()).filter(k => k.length > 0);
+  if (keys.length === 0) {
+    throw new Error('No valid GROQ_API_KEYS found');
+  }
+  
+  const randomKey = keys[Math.floor(Math.random() * keys.length)];
+  return new Groq({ apiKey: randomKey });
 }
 
 export async function generateEvaluationContent(systemInstruction: string, contents: string, maxRetries = 3) {
