@@ -7,38 +7,39 @@ import { ActionResult } from '@/types/api.types'
 
 export async function loginAdmin(secret: string): Promise<ActionResult<void>> {
   if (!env.ADMIN_SECRET_KEY) {
-    return { success: false, error: { message: 'Admin login is not configured.' } }
+    return { success: false, error: { code: 'UNAUTHORIZED', message: 'Admin login is not configured.' } }
   }
 
   if (secret === env.ADMIN_SECRET_KEY) {
-    cookies().set('admin_token', 'true', {
+    const cookieStore = await cookies();
+    cookieStore.set('admin_token', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 // 1 day
     });
-    return { success: true }
+    return { success: true, data: undefined }
   }
 
-  return { success: false, error: { message: 'Invalid secret key.' } }
+  return { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid secret key.' } }
 }
 
 export async function toggleStudentAccess(studentId: string, block: boolean): Promise<ActionResult<void>> {
-  const adminToken = cookies().get('admin_token')?.value;
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get('admin_token')?.value;
   if (!adminToken) {
-    return { success: false, error: { message: 'Unauthorized' } };
+    return { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } };
   }
 
   const serviceClient = createServiceClient();
-  const { error } = await serviceClient
-    .from('students')
+  const { error } = await (serviceClient.from('students') as any)
     .update({ is_blocked: block })
     .eq('id', studentId);
 
   if (error) {
-    return { success: false, error: { message: error.message } }
+    return { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: error.message } }
   }
 
-  return { success: true }
+  return { success: true, data: undefined }
 }

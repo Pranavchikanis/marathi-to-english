@@ -86,7 +86,7 @@ export default function AdminDashboard() {
                     <td className="py-3 text-right">
                       <Button
                         size="sm"
-                        variant={student.is_blocked ? "default" : "outline"}
+                        variant={student.is_blocked ? "default" : "secondary"}
                         onClick={() => handleToggleBlock(student.id, student.is_blocked)}
                       >
                         {student.is_blocked ? 'Unblock' : 'Block User'}
