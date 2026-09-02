@@ -117,13 +117,13 @@ export class CurriculumService {
 
     // 3. Fetch recently used exercises to prevent duplicates
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
-    const { data: recentAttempts } = await (supabase.from('attempts') as any)
-      .select('session_exercises!inner(exercise_id, sessions!inner(student_id))')
-      .eq('session_exercises.sessions.student_id', studentId)
-      .gte('created_at', fortyEightHoursAgo);
+    const { data: recentExercises } = await (supabase.from('session_exercises') as any)
+      .select('exercise_id, sessions!inner(student_id, started_at)')
+      .eq('sessions.student_id', studentId)
+      .gte('sessions.started_at', fortyEightHoursAgo);
       
-    const excludedIds = (recentAttempts || [])
-      .map((a: any) => a.session_exercises?.exercise_id)
+    const excludedIds = (recentExercises || [])
+      .map((a: any) => a.exercise_id)
       .filter(Boolean);
 
     // 4. Fetch exercises for the selected concepts with adaptive difficulty targeting
