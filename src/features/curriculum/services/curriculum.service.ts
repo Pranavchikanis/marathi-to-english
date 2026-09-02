@@ -87,7 +87,27 @@ export class CurriculumService {
           }
         }
       } catch (e) {
-        console.error("Failed to dynamically generate next concept:", e);
+        console.error("Failed to dynamically generate next concept, using fallback:", e);
+        // GRACEFUL DEGRADATION: Use local fallback concept if Gemini is down
+        const { FALLBACK_EXERCISES } = await import('@/data/fallback-exercises');
+        const fallbackConcept = FALLBACK_EXERCISES[Math.floor(Math.random() * FALLBACK_EXERCISES.length)].concepts[0];
+        
+        const { data: student } = await (supabase.from('students') as any).select('current_stage_id').eq('id', studentId).single();
+        if (student?.current_stage_id) {
+          const { data: insertedConcept } = await (supabase.from('concepts') as any)
+            .insert({ stage_id: student.current_stage_id, name: fallbackConcept.name, description: fallbackConcept.description })
+            .select('id')
+            .single();
+            
+          if (insertedConcept?.id) {
+            coreConcepts.push(insertedConcept.id);
+            await (supabase.from('mastery') as any).insert({
+              student_id: studentId,
+              concept_id: insertedConcept.id,
+              status: 'INTRODUCED'
+            });
+          }
+        }
       }
     }
 
@@ -201,7 +221,19 @@ export class CurriculumService {
               selectedId = sorted[0].id;
             }
           } catch (e) {
-            console.error('Failed to generate infinite exercises:', e);
+            console.error('Failed to generate infinite exercises, using local fallback:', e);
+            // GRACEFUL DEGRADATION: Use local fallback if Gemini is down
+            const { getRandomFallbackExercise } = await import('@/data/fallback-exercises');
+            const fallback = getRandomFallbackExercise(conceptId);
+            
+            const { data: insertedFallback } = await (supabase.from('exercises') as any)
+              .insert([fallback])
+              .select('id')
+              .single();
+              
+            if (insertedFallback?.id) {
+              selectedId = insertedFallback.id;
+            }
           }
         }
       }

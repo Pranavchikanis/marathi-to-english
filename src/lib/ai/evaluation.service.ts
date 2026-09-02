@@ -102,30 +102,42 @@ export class EvaluationService {
         };
       } catch (error: any) {
         // Fast fail for non-retryable errors
-        if (error instanceof GeminiTimeoutError || error.message?.includes('TIMEOUT')) {
-          throw new ProviderError('AI timeout. Please try again.', true);
-        }
-        if (error instanceof GeminiRateLimitError || error.message?.includes('RATE_LIMIT')) {
-          throw new ProviderError('Rate limit exceeded. Please wait a moment.', true);
-        }
         if (error instanceof GeminiSafetyRefusal || error.message?.includes('SAFETY_REFUSAL')) {
           throw new ProviderError('AI safety block. Cannot process this answer.', false);
+        }
+        
+        if (error instanceof GeminiTimeoutError || error.message?.includes('TIMEOUT') || error instanceof GeminiRateLimitError || error.message?.includes('RATE_LIMIT')) {
+          console.warn('AI Unavailable (Timeout/Rate Limit), falling back to heuristic grader:', error);
+          const { evaluateHeuristically } = await import('./heuristic-grader');
+          const fallbackEval = evaluateHeuristically(context.studentAnswer, context.referenceTranslations);
+          return { data: fallbackEval as any, metadata: { model: 'heuristic-fallback', tokensUsed: 0 } };
         }
 
         // Retryable errors: Provider Errors (5xx) or Schema Validation Errors
         attempts++;
         if (attempts > maxRetries) {
-          console.error('Error in EvaluationService after retries:', error);
-          if (error instanceof ProviderError && error.message === 'GEMINI_SCHEMA_VALIDATION_ERROR') {
-            throw new ProviderError('AI response format invalid. Please retry.', true);
-          }
-          throw new ProviderError('Connection issue. Please retry.', true);
+          console.error('Error in EvaluationService after retries, falling back to heuristic grader:', error);
+          const { evaluateHeuristically } = await import('./heuristic-grader');
+          const fallbackEval = evaluateHeuristically(context.studentAnswer, context.referenceTranslations);
+          
+          return {
+            data: fallbackEval as any,
+            metadata: {
+              model: 'heuristic-fallback',
+              tokensUsed: 0,
+            }
+          };
         }
         console.warn(`Evaluation failed, retrying (${attempts}/${maxRetries})...`, error);
       }
     }
 
-    throw new ProviderError('Connection issue. Please retry.', true);
+    // Unreachable due to maxRetries check, but just in case
+    const { evaluateHeuristically } = await import('./heuristic-grader');
+    return {
+      data: evaluateHeuristically(context.studentAnswer, context.referenceTranslations) as any,
+      metadata: { model: 'heuristic-fallback', tokensUsed: 0 }
+    };
   }
 }
 
