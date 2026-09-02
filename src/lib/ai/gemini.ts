@@ -51,65 +51,71 @@ export class GeminiSafetyRefusal extends Error {
   }
 }
 
-export async function generateEvaluationContent(systemInstruction: string, contents: string) {
-  const abortController = new AbortController();
+export async function generateEvaluationContent(systemInstruction: string, contents: string, maxRetries = 3) {
+  let attempt = 0;
   
-  // AbortSignal.timeout is a standard web API available in modern Node.js
-  // But to be fully safe with Node versions, we can use a setTimeout fallback if needed,
-  // or just use AbortSignal.timeout. Next.js 14+ supports AbortSignal.timeout()
-  const timeoutId = setTimeout(() => abortController.abort(new GeminiTimeoutError()), 5000);
+  while (attempt < maxRetries) {
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(new GeminiTimeoutError()), 8000); // Increased timeout
 
-  try {
-    const ai = getRandomGenAIClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
-      contents: contents,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: 'application/json',
-        responseSchema: GeminiEvaluationSchema,
-        temperature: 0.2, // Low temp for deterministic evaluation
-      },
-      // Note: currently @google/genai might not officially support passing an abortSignal 
-      // in the standard options yet. We'll pass it if the SDK allows, 
-      // but otherwise the timeout might be bounded by the SDK's internal timeouts.
-      // Assuming SDK supports standard fetch options or we handle it via wrapper:
-    });
-    
-    clearTimeout(timeoutId);
+    try {
+      const ai = getRandomGenAIClient();
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: contents,
+        config: {
+          systemInstruction: systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: GeminiEvaluationSchema,
+          temperature: 0.2, // Low temp for deterministic evaluation
+        }
+      });
+      
+      clearTimeout(timeoutId);
 
-    // Check for safety blocks
-    if (response.promptFeedback?.blockReason) {
-      throw new GeminiSafetyRefusal();
-    }
+      // Check for safety blocks
+      if (response.promptFeedback?.blockReason) {
+        throw new GeminiSafetyRefusal();
+      }
 
-    if (!response.text) {
-      throw new GeminiProviderError('No text returned from Gemini');
-    }
+      if (!response.text) {
+        throw new GeminiProviderError('No text returned from Gemini');
+      }
 
-    return {
-      text: response.text,
-      tokensUsed: response.usageMetadata?.totalTokenCount || 0
-    };
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    
-    // Map SDK errors
-    if (error instanceof GeminiTimeoutError || error.name === 'AbortError' || error.name === 'GeminiTimeoutError') {
-      throw new GeminiTimeoutError();
+      return {
+        text: response.text,
+        tokensUsed: response.usageMetadata?.totalTokenCount || 0
+      };
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      attempt++;
+      
+      // Do not retry on safety refusal
+      if (error instanceof GeminiSafetyRefusal) {
+        throw error;
+      }
+      
+      if (attempt >= maxRetries) {
+        // Map SDK errors only on final failure
+        if (error instanceof GeminiTimeoutError || error.name === 'AbortError' || error.name === 'GeminiTimeoutError') {
+          throw new GeminiTimeoutError();
+        }
+        if (error.status === 429) {
+          throw new GeminiRateLimitError();
+        }
+        // Check for 503 Service Unavailable which is also a provider error
+        if (error.status === 503) {
+           throw new GeminiProviderError("Service is currently experiencing high demand. Please try again.");
+        }
+        throw new GeminiProviderError(error.message || 'Unknown SDK Error');
+      }
+      
+      // Exponential backoff before retrying
+      await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
     }
-    
-    if (error instanceof GeminiSafetyRefusal) {
-      throw error;
-    }
-    
-    if (error.status === 429) {
-      throw new GeminiRateLimitError();
-    }
-
-    // Default to provider error for 5xx and others
-    throw new GeminiProviderError(error.message || 'Unknown SDK Error');
   }
+  throw new GeminiProviderError('Failed to generate evaluation after retries');
 }
 
 export async function generateInfiniteExercises(conceptName: string, count: number = 10, maxRetries = 3) {
