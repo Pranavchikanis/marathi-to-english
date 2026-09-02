@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { updateDisplayName } from '../actions'
 
@@ -43,9 +43,9 @@ export function ForceNameModal({ initialName }: ForceNameModalProps) {
       <Card className="w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-300">
         <CardHeader>
           <CardTitle className="text-2xl">Welcome to the Platform! 🎉</CardTitle>
-          <CardDescription className="text-base mt-2">
+          <p className="text-base mt-2 text-text-secondary">
             Before you start practicing, please let us know what to call you.
-          </CardDescription>
+          </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-4">
