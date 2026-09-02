@@ -101,6 +101,11 @@ export class EvaluationService {
           }
         };
       } catch (error: any) {
+        // [DEBUG] TEMPORARILY THROWING RAW ERROR TO UI
+        console.error("RAW GROQ ERROR:", error);
+        throw error;
+        
+        /* 
         if (error instanceof GroqTimeoutError || error.message?.includes('TIMEOUT') || error instanceof GroqRateLimitError || error.message?.includes('RATE_LIMIT')) {
           console.warn('AI Unavailable (Timeout/Rate Limit), falling back to heuristic grader:', error);
           const { evaluateHeuristically } = await import('./heuristic-grader');
@@ -124,6 +129,7 @@ export class EvaluationService {
           };
         }
         console.warn(`Evaluation failed, retrying (${attempts}/${maxRetries})...`, error);
+        */
       }
     }
 
