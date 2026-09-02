@@ -22,8 +22,7 @@ export async function updateDisplayName(newName: string): Promise<ActionResult<v
   // Alternatively, just use normal client if RLS allows. 
   // We'll use serviceClient to be safe, just in case RLS blocks updates.
   const serviceClient = createServiceClient();
-  const { error } = await serviceClient
-    .from('students')
+  const { error } = await (serviceClient.from('students') as any)
     .update({ display_name: sanitizedName })
     .eq('auth_user_id', user.id)
 
