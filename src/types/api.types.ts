@@ -19,6 +19,6 @@ export interface ActionError {
   referenceId?: string;
 }
 
-export type ActionResult<T> =
-  | { success: true; data: T }
+export type ActionResult<T = void> =
+  | { success: true; data?: T }
   | { success: false; error: ActionError };

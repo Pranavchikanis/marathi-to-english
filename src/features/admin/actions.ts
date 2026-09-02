@@ -19,7 +19,7 @@ export async function loginAdmin(secret: string): Promise<ActionResult<void>> {
       path: '/',
       maxAge: 60 * 60 * 24 // 1 day
     });
-    return { success: true, data: undefined }
+    return { success: true }
   }
 
   return { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid secret key.' } }
@@ -41,5 +41,5 @@ export async function toggleStudentAccess(studentId: string, block: boolean): Pr
     return { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: error.message } }
   }
 
-  return { success: true, data: undefined }
+  return { success: true }
 }
