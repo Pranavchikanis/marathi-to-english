@@ -99,8 +99,8 @@ export default function PracticePage() {
       <SessionSummary 
         summary={{
           totalXp: state.summary.xp_earned,
-          exercisesCompleted: state.summary.total_exercises,
-          masteryUpgrades: 0 // Would come from session state
+          exercisesCompleted: state.summary.total_exercises || 0,
+          masteryUpgrades: state.summary.mastery_upgrades || 0
         }}
       />
     )

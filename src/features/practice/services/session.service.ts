@@ -275,15 +275,35 @@ export class SessionService {
     if (studentUpdateError) throw new Error(`Failed to update student progress: ${studentUpdateError.message}`)
 
     // 8.c Upsert Mastery
+    let upgradesCount = 0;
     if (masteryUpdates.length > 0) {
       const { error: masteryError } = await (this.supabase
         .from('mastery') as any)
         .upsert(masteryUpdates, { onConflict: 'student_id, concept_id' });
         
       if (masteryError) throw new Error(`Failed to update mastery: ${masteryError.message}`)
+      
+      // Calculate how many actually upgraded
+      masteryUpdates.forEach(update => {
+        const oldProfile = masteryMap.get(update.concept_id);
+        if (oldProfile && oldProfile.status !== update.status) {
+          // If status changed and it's not a downgrade, count it as an upgrade
+          const statusOrder = ['INTRODUCED', 'LEARNING', 'PRACTICING', 'MASTERED'];
+          if (statusOrder.indexOf(update.status) > statusOrder.indexOf(oldProfile.status)) {
+            upgradesCount++;
+          }
+        } else if (!oldProfile && update.status !== 'INTRODUCED') {
+          // Edge case: new concept immediately promoted
+          upgradesCount++;
+        }
+      });
     }
 
-    return updatedSession
+    return {
+      ...updatedSession,
+      mastery_upgrades: upgradesCount,
+      total_exercises: attemptsData ? attemptsData.length : 0
+    }
   }
 }
 
