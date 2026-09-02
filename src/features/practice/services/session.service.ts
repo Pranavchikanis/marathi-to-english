@@ -143,6 +143,7 @@ export class SessionService {
     // 6. Process Mastery Updates
     const masteryUpdates: any[] = [];
     const allConceptIds = Object.keys(conceptGrades);
+    let masteryMap = new Map<string, any>();
     
     if (allConceptIds.length > 0) {
       // Fetch current mastery for these concepts
@@ -152,7 +153,7 @@ export class SessionService {
         .eq('student_id', session.student_id)
         .in('concept_id', allConceptIds);
 
-      const masteryMap = new Map<string, any>((existingMastery || []).map((m: any) => [m.concept_id, m]));
+      masteryMap = new Map<string, any>((existingMastery || []).map((m: any) => [m.concept_id, m]));
 
       for (const conceptId of allConceptIds) {
         let profile: any = masteryMap.get(conceptId);

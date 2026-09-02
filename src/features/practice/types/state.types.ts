@@ -32,6 +32,7 @@ export type SessionSummary = {
   xp_earned: number
   total_exercises: number
   correct_exercises: number
+  mastery_upgrades?: number
 }
 
 export type PracticeSessionState =
