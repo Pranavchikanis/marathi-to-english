@@ -81,6 +81,7 @@ export interface Database {
           current_stage_id: string
           created_at: string
           updated_at: string
+          is_blocked: boolean
         }
         Insert: {
           id?: string
@@ -90,6 +91,7 @@ export interface Database {
           current_stage_id: string
           created_at?: string
           updated_at?: string
+          is_blocked?: boolean
         }
         Update: {
           id?: string
@@ -99,6 +101,7 @@ export interface Database {
           current_stage_id?: string
           created_at?: string
           updated_at?: string
+          is_blocked?: boolean
         }
       }
       sessions: {

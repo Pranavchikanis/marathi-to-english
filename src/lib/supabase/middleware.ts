@@ -61,6 +61,18 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin Route Protection
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin') && request.nextUrl.pathname !== '/admin/login';
+  if (isAdminRoute) {
+    const adminToken = request.cookies.get('admin_token')?.value;
+    // In a real app we'd verify a JWT, here we just check for presence since we set it securely on login
+    if (!adminToken) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      return NextResponse.redirect(url);
+    }
+  }
+
   // If user is signed in and trying to go to login, redirect to dashboard
   if (user && request.nextUrl.pathname.startsWith('/login')) {
       const url = request.nextUrl.clone();

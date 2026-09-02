@@ -5,11 +5,15 @@ export async function ensureStudentProfile(userId: string) {
   const serviceClient = createServiceClient(); // use service client to bypass RLS for inserts
   
   const { data: student } = await (serviceClient.from('students') as any)
-    .select('id, display_name, total_xp, current_streak')
+    .select('id, display_name, total_xp, current_streak, is_blocked')
     .eq('auth_user_id', userId)
     .single();
     
   if (student) {
+    if (student.is_blocked) {
+      const { AuthError } = await import('@/lib/error');
+      throw new AuthError('Your account has been suspended by an administrator.');
+    }
     return student;
   }
   
