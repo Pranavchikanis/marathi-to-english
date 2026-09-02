@@ -40,7 +40,7 @@ export async function generateEvaluationContent(systemInstruction: string, conte
       const groq = getGroqClient();
       
       const response = await groq.chat.completions.create({
-        model: 'llama-3.1-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction + '\n\nIMPORTANT: You must return ONLY valid JSON matching the exact schema requested. Do not include any markdown formatting like ```json or any conversational text.' },
           { role: 'user', content: contents }
@@ -102,7 +102,7 @@ Ensure the sentences vary in structure, vocabulary, and context (e.g. casual, fo
 IMPORTANT: You must return ONLY valid JSON. The top level must be a JSON object with a key "exercises" containing the array of objects.`;
 
       const response = await groq.chat.completions.create({
-        model: 'llama-3.1-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: 'Generate the exercises as JSON.' }
@@ -148,7 +148,7 @@ Return a JSON object with this exact interface:
 Do not return anything other than the JSON object.`;
 
       const response = await groq.chat.completions.create({
-        model: 'llama-3.1-70b-versatile',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: 'Generate the next curriculum topic as JSON.' }

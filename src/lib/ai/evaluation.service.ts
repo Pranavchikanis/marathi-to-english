@@ -96,7 +96,7 @@ export class EvaluationService {
         return {
           data: evaluation,
           metadata: {
-            model: 'llama-3.1-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             tokensUsed: response.tokensUsed,
           }
         };
