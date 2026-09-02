@@ -2,10 +2,10 @@ import { AiEvaluationSchema, AiEvaluation } from './schemas/gemini-response.sche
 import { buildEvaluationPrompt } from './prompts/evaluation.prompt';
 import { 
   generateEvaluationContent, 
-  GeminiTimeoutError, 
-  GeminiRateLimitError, 
-  GeminiSafetyRefusal 
-} from './gemini';
+  GroqTimeoutError, 
+  GroqRateLimitError, 
+  GroqProviderError 
+} from './groq';
 import { ProviderError, ValidationError } from '@/lib/error';
 
 export interface EvaluationContext {
@@ -17,7 +17,7 @@ export interface EvaluationContext {
 
 export class EvaluationService {
   /**
-   * Sends the attempt to Gemini for semantic evaluation.
+   * Sends the attempt to Groq for semantic evaluation.
    */
   async evaluateAttempt(context: EvaluationContext): Promise<{ data: AiEvaluation; metadata: any }> {
     if (context.studentAnswer.length > 500) {
@@ -67,7 +67,7 @@ export class EvaluationService {
         try {
           parsedJson = JSON.parse(response.text);
         } catch (parseError) {
-          throw new ProviderError('GEMINI_SCHEMA_VALIDATION_ERROR');
+          throw new ProviderError('GROQ_SCHEMA_VALIDATION_ERROR');
         }
         
         // Validate using our Zod schema
@@ -75,7 +75,7 @@ export class EvaluationService {
         
         if (!validationResult.success) {
           console.warn('AI Schema Validation Failed:', validationResult.error);
-          throw new ProviderError('GEMINI_SCHEMA_VALIDATION_ERROR');
+          throw new ProviderError('GROQ_SCHEMA_VALIDATION_ERROR');
         }
 
         // Apply Business Validation Rules
@@ -96,17 +96,12 @@ export class EvaluationService {
         return {
           data: evaluation,
           metadata: {
-            model: 'gemini-flash-latest',
+            model: 'llama-3.1-70b-versatile',
             tokensUsed: response.tokensUsed,
           }
         };
       } catch (error: any) {
-        // Fast fail for non-retryable errors
-        if (error instanceof GeminiSafetyRefusal || error.message?.includes('SAFETY_REFUSAL')) {
-          throw new ProviderError('AI safety block. Cannot process this answer.', false);
-        }
-        
-        if (error instanceof GeminiTimeoutError || error.message?.includes('TIMEOUT') || error instanceof GeminiRateLimitError || error.message?.includes('RATE_LIMIT')) {
+        if (error instanceof GroqTimeoutError || error.message?.includes('TIMEOUT') || error instanceof GroqRateLimitError || error.message?.includes('RATE_LIMIT')) {
           console.warn('AI Unavailable (Timeout/Rate Limit), falling back to heuristic grader:', error);
           const { evaluateHeuristically } = await import('./heuristic-grader');
           const fallbackEval = evaluateHeuristically(context.studentAnswer, context.referenceTranslations);

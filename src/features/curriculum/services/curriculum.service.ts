@@ -51,7 +51,7 @@ export class CurriculumService {
     // If student is out of core concepts, let AI generate the next topic
     if (coreConcepts.length === 0) {
       try {
-        const { generateNextCurriculumTopic } = await import('@/lib/ai/gemini');
+        const { generateNextCurriculumTopic } = await import('@/lib/ai/groq');
         
         // 1. Fetch all concepts the student has ever seen from their mastery profile
         const { data: allSeenConcepts } = await (supabase.from('mastery') as any)
@@ -198,7 +198,7 @@ export class CurriculumService {
         const { data: conceptData } = await supabase.from('concepts').select('name').eq('id', conceptId).single();
         if (conceptData) {
           try {
-            const { generateInfiniteExercises } = await import('@/lib/ai/gemini');
+            const { generateInfiniteExercises } = await import('@/lib/ai/groq');
             const aiExercises = await generateInfiniteExercises((conceptData as any).name, 5);
             
             // Insert them into the DB
