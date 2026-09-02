@@ -175,25 +175,9 @@ export class CurriculumService {
           return diffA - diffB;
         });
         selectedId = sorted[0].id;
-      } else if (excludedIds.length > 0) {
-        // Fallback: If no exercises found (because they were all excluded), retry without exclusion
-        const { data: fallbackExercises } = await (supabase.from('exercises') as any)
-          .select('id, difficulty_level')
-          .eq('concept_id', conceptId)
-          .limit(50);
-          
-        if (fallbackExercises && (fallbackExercises as any[]).length > 0) {
-          const sorted = (fallbackExercises as any[]).sort((a, b) => {
-            const diffA = Math.abs((a.difficulty_level || 1) - targetDifficulty);
-            const diffB = Math.abs((b.difficulty_level || 1) - targetDifficulty);
-            if (diffA === diffB) return Math.random() - 0.5; // Randomize ties
-            return diffA - diffB;
-          });
-          selectedId = sorted[0].id;
-        }
       }
 
-      // INFINITE GENERATION FALLBACK
+      // INFINITE GENERATION: If no un-used exercises are found, ask AI to make new ones!
       if (!selectedId) {
         const { data: conceptData } = await supabase.from('concepts').select('name').eq('id', conceptId).single();
         if (conceptData) {
@@ -212,7 +196,6 @@ export class CurriculumService {
               .select('id, difficulty_level');
               
             if (inserted && inserted.length > 0) {
-              // Find the best match from the newly generated ones
               const sorted = (inserted as any[]).sort((a, b) => {
                 const diffA = Math.abs((a.difficulty_level || 1) - targetDifficulty);
                 const diffB = Math.abs((b.difficulty_level || 1) - targetDifficulty);
@@ -221,20 +204,41 @@ export class CurriculumService {
               selectedId = sorted[0].id;
             }
           } catch (e) {
-            console.error('Failed to generate infinite exercises, using local fallback:', e);
-            // GRACEFUL DEGRADATION: Use local fallback if Gemini is down
-            const { getRandomFallbackExercise } = await import('@/data/fallback-exercises');
-            const fallback = getRandomFallbackExercise(conceptId);
-            
-            const { data: insertedFallback } = await (supabase.from('exercises') as any)
-              .insert([fallback])
-              .select('id')
-              .single();
-              
-            if (insertedFallback?.id) {
-              selectedId = insertedFallback.id;
-            }
+            console.error('Failed to generate infinite exercises:', e);
           }
+        }
+      }
+
+      // EXTREME FALLBACK: If AI generation fails, recycle old exercises if possible
+      if (!selectedId && excludedIds.length > 0) {
+        const { data: fallbackExercises } = await (supabase.from('exercises') as any)
+          .select('id, difficulty_level')
+          .eq('concept_id', conceptId)
+          .limit(50);
+          
+        if (fallbackExercises && (fallbackExercises as any[]).length > 0) {
+          const sorted = (fallbackExercises as any[]).sort((a, b) => {
+            const diffA = Math.abs((a.difficulty_level || 1) - targetDifficulty);
+            const diffB = Math.abs((b.difficulty_level || 1) - targetDifficulty);
+            if (diffA === diffB) return Math.random() - 0.5;
+            return diffA - diffB;
+          });
+          selectedId = sorted[0].id;
+        }
+      }
+      
+      // FINAL OFFLINE FALLBACK: If there are literally no exercises at all and AI is down
+      if (!selectedId) {
+        const { getRandomFallbackExercise } = await import('@/data/fallback-exercises');
+        const fallback = getRandomFallbackExercise(conceptId);
+        
+        const { data: insertedFallback } = await (supabase.from('exercises') as any)
+          .insert([fallback])
+          .select('id')
+          .single();
+          
+        if (insertedFallback?.id) {
+          selectedId = insertedFallback.id;
         }
       }
 
