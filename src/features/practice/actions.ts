@@ -64,16 +64,7 @@ export const submitAnswer = withErrorHandling(async (input: SubmitAnswerRequest)
     throw new AuthError('Unauthorized resource access')
   }
 
-  // Idempotency Check: Does an attempt already exist for this sessionExerciseId?
-  const { data: existingAttempt } = await serviceClient
-    .from('attempts')
-    .select('id, evaluations(*)')
-    .eq('session_exercise_id', parsed.data.sessionExerciseId)
-    .maybeSingle()
-
-  if (existingAttempt) {
-    throw new DuplicateSubmissionError('Answer already submitted for this exercise')
-  }
+  // Removed idempotency check to allow users to retry the same exercise
 
   const exerciseData = (sessionExercise as unknown as Record<string, unknown>)?.exercises as unknown as { marathi_prompt: string, reference_translations: string[], concepts: { name: string } };
 
