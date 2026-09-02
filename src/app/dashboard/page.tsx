@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { ensureStudentProfile } from "@/lib/auth/student"
 
 import { NameEditor } from "./components/NameEditor"
+import { ForceNameModal } from "./components/ForceNameModal"
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+      <ForceNameModal initialName={studentName} />
       <header className="w-full mb-8 text-center sm:text-left">
         <NameEditor initialName={studentName} />
         <p className="text-text-secondary">Ready to practice your English today?</p>
