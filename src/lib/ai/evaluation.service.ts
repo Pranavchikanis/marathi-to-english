@@ -81,6 +81,17 @@ export class EvaluationService {
         // Apply Business Validation Rules
         const evaluation = validationResult.data;
 
+        // Clean up nullish arrays from Groq
+        if (!evaluation.alternative_valid_translations) {
+          evaluation.alternative_valid_translations = [];
+        }
+        if (!evaluation.errors) {
+          evaluation.errors = [];
+        }
+        if (evaluation.corrected_text === null) {
+          evaluation.corrected_text = undefined;
+        }
+
         // Rule: If grade is A, strip errors and corrections
         if (evaluation.grade === 'A') {
           evaluation.errors = [];
@@ -94,18 +105,13 @@ export class EvaluationService {
         }
 
         return {
-          data: evaluation,
+          data: evaluation as any,
           metadata: {
             model: 'openai/gpt-oss-120b',
             tokensUsed: response.tokensUsed,
           }
         };
       } catch (error: any) {
-        // [DEBUG] TEMPORARILY THROWING RAW ERROR TO UI
-        console.error("RAW GROQ ERROR:", error);
-        throw error;
-        
-        /* 
         if (error instanceof GroqTimeoutError || error.message?.includes('TIMEOUT') || error instanceof GroqRateLimitError || error.message?.includes('RATE_LIMIT')) {
           console.warn('AI Unavailable (Timeout/Rate Limit), falling back to heuristic grader:', error);
           const { evaluateHeuristically } = await import('./heuristic-grader');
@@ -129,7 +135,6 @@ export class EvaluationService {
           };
         }
         console.warn(`Evaluation failed, retrying (${attempts}/${maxRetries})...`, error);
-        */
       }
     }
 

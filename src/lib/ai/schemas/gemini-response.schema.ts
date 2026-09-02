@@ -4,16 +4,16 @@ import { Schema, Type } from '@google/genai';
 // Zod schema for server-side validation of the JSON response
 export const AiEvaluationSchema = z.object({
   grade: z.enum(['A', 'B', 'C', 'D', 'E', 'F']),
-  corrected_text: z.string().optional(),
+  corrected_text: z.string().nullish(),
   explanation_marathi: z.string(),
-  alternative_valid_translations: z.array(z.string()),
+  alternative_valid_translations: z.array(z.string()).nullish(),
   errors: z.array(
     z.enum([
       'GRAMMAR', 'TENSE', 'ARTICLE', 'PREPOSITION', 'WORD_ORDER', 
       'AGREEMENT', 'VOCABULARY', 'SPELLING', 'MISSING_WORD', 
       'EXTRA_WORD', 'MEANING', 'NATURALNESS'
     ])
-  ).optional(),
+  ).nullish(),
 });
 
 export type AiEvaluation = z.infer<typeof AiEvaluationSchema>;
