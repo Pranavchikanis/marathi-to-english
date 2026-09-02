@@ -43,7 +43,7 @@ If it is a typo that doesn't create a wrong word, it is Grade C.
 OUTPUT RULES:
 - grade: A-F enum.
 - corrected_text: Must be grammatically flawless and semantically identical. Minimal correction for C/D/E. Null for A/B.
-- explanation_marathi: 1-2 short sentences. Provide feedback in Marathi script explaining the rule broken and how to fix it.
+- explanation_marathi: 2-3 sentences. Do not just state the mistake. You MUST explicitly teach the underlying English grammar rule in Marathi so the student learns WHY their answer was wrong and how the correct structure works.
 - alternative_valid_translations: Provide only for Grade B.
 - errors: Array of Error Taxonomy enums. Max 2.
 
