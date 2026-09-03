@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { toggleStudentAccess } from '@/features/admin/actions'
-import { createClient } from '@/lib/supabase/client'
+import { toggleStudentAccess, getAllStudents } from '@/features/admin/actions'
 
 export default function AdminDashboard() {
   const [students, setStudents] = useState<any[]>([])
@@ -15,14 +14,11 @@ export default function AdminDashboard() {
   }, [])
 
   const fetchStudents = async () => {
-    const supabase = createClient()
-    const { data, error } = await supabase
-      .from('students')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (data) {
-      setStudents(data)
+    const res = await getAllStudents()
+    if (res.success && res.data) {
+      setStudents(res.data)
+    } else {
+      console.error(res.error?.message)
     }
     setLoading(false)
   }

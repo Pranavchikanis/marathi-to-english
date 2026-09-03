@@ -43,3 +43,22 @@ export async function toggleStudentAccess(studentId: string, block: boolean): Pr
 
   return { success: true }
 }
+
+export async function getAllStudents(): Promise<ActionResult<any[]>> {
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get('admin_token')?.value;
+  if (!adminToken) {
+    return { success: false, error: { code: 'UNAUTHORIZED', message: 'Unauthorized' } };
+  }
+
+  const serviceClient = createServiceClient();
+  const { data, error } = await (serviceClient.from('students') as any)
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { success: false, error: { code: 'INTERNAL_SERVER_ERROR', message: error.message } }
+  }
+
+  return { success: true, data: data || [] };
+}
