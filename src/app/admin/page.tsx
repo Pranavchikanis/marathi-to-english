@@ -15,10 +15,10 @@ export default function AdminDashboard() {
 
   const fetchStudents = async () => {
     const res = await getAllStudents()
-    if (res.success && res.data) {
-      setStudents(res.data)
+    if (res.success) {
+      if (res.data) setStudents(res.data)
     } else {
-      console.error(res.error?.message)
+      console.error(res.error.message)
     }
     setLoading(false)
   }
