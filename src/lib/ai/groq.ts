@@ -105,7 +105,12 @@ Format the output as a JSON array of objects. Each object must exactly match thi
   "difficulty_level": 1 // integer from 1 to 3
 }
 
-Ensure the sentences vary in structure, vocabulary, and context (e.g. casual, formal, questions, statements). Keep it highly contextual.
+IMPORTANT DIFFICULTY RULES:
+- If difficulty_level = 1: Sentences MUST be extremely short and simple (2-4 words maximum). E.g. "I eat", "She is happy".
+- If difficulty_level = 2: Sentences can be 4-6 words.
+- If difficulty_level = 3: Sentences can be up to 8 words.
+Do NOT use complex vocabulary for difficulty 1. Keep it highly relatable for beginners.
+
 IMPORTANT: You must return ONLY valid JSON. The top level must be a JSON object with a key "exercises" containing the array of objects.`;
 
       const response = await groq.chat.completions.create({

@@ -1,13 +1,13 @@
 export const FALLBACK_EXERCISES = [
   {
-    marathi_prompt: "मी एक डॉक्टर आहे.",
+    marathi_prompt: "मी डॉक्टर आहे.",
     reference_translations: ["I am a doctor.", "I'm a doctor."],
     difficulty_level: 1,
     concepts: [{ name: "Simple Present Tense (To Be)", description: "Using am/is/are correctly" }]
   },
   {
-    marathi_prompt: "तू काय करत आहेस?",
-    reference_translations: ["What are you doing?", "What are you doing right now?"],
+    marathi_prompt: "तू काय करतोस?",
+    reference_translations: ["What do you do?"],
     difficulty_level: 2,
     concepts: [{ name: "Present Continuous Tense", description: "Asking questions in present continuous" }]
   },
