@@ -2,8 +2,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  // Check for maintenance mode
-  if (process.env.MAINTENANCE_MODE === 'true') {
+  // Hardcoded to true to force maintenance mode immediately
+  const isMaintenanceMode = true;
+
+  if (isMaintenanceMode) {
     const isMaintenancePath = request.nextUrl.pathname.startsWith('/maintenance');
     const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
     
@@ -14,7 +16,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If on maintenance path but maintenance is OFF, redirect to home
-  if (process.env.MAINTENANCE_MODE !== 'true' && request.nextUrl.pathname.startsWith('/maintenance')) {
+  if (!isMaintenanceMode && request.nextUrl.pathname.startsWith('/maintenance')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
