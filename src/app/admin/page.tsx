@@ -72,9 +72,9 @@ export default function AdminDashboard() {
                     <td className="py-3 text-text-primary font-medium">{student.display_name}</td>
                     <td className="py-3 text-text-secondary">{new Date(student.created_at).toLocaleDateString()}</td>
                     <td className="py-3 text-text-secondary">
-                      {new Date(student.updated_at).toLocaleDateString() === new Date().toLocaleDateString() 
+                      {new Date(student.last_practiced_at || student.created_at).toLocaleDateString() === new Date().toLocaleDateString() 
                         ? 'Today' 
-                        : new Date(student.updated_at).toLocaleDateString()}
+                        : new Date(student.last_practiced_at || student.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-3 text-text-secondary">{student.total_xp} XP</td>
                     <td className="py-3 text-text-secondary">{student.current_streak} days</td>
