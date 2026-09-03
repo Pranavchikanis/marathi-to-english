@@ -58,6 +58,7 @@ export default function AdminDashboard() {
                   <th className="pb-3 font-semibold">User ID</th>
                   <th className="pb-3 font-semibold">Name</th>
                   <th className="pb-3 font-semibold">Joined</th>
+                  <th className="pb-3 font-semibold">Last Active</th>
                   <th className="pb-3 font-semibold">XP</th>
                   <th className="pb-3 font-semibold">Streak</th>
                   <th className="pb-3 font-semibold">Status</th>
@@ -70,6 +71,11 @@ export default function AdminDashboard() {
                     <td className="py-3 text-xs text-text-tertiary font-mono">{student.id.split('-')[0]}...</td>
                     <td className="py-3 text-text-primary font-medium">{student.display_name}</td>
                     <td className="py-3 text-text-secondary">{new Date(student.created_at).toLocaleDateString()}</td>
+                    <td className="py-3 text-text-secondary">
+                      {new Date(student.updated_at).toLocaleDateString() === new Date().toLocaleDateString() 
+                        ? 'Today' 
+                        : new Date(student.updated_at).toLocaleDateString()}
+                    </td>
                     <td className="py-3 text-text-secondary">{student.total_xp} XP</td>
                     <td className="py-3 text-text-secondary">{student.current_streak} days</td>
                     <td className="py-3">
