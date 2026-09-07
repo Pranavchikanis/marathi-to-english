@@ -5,42 +5,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { Database } from '@/types/database.types';
 
-export async function login(formData: FormData) {
+export async function signIn(formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          cookieStore.set(name, value, options);
-        },
-        remove(name: string, options: any) {
-          cookieStore.set(name, '', options);
-        },
-      },
-    }
-  );
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    return redirect('/login?error=Invalid credentials');
-  }
-
-  return redirect('/dashboard');
-}
-
-export async function autoLogin() {
   const cookieStore = await cookies();
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,38 +22,80 @@ export async function autoLogin() {
     }
   );
 
-  let { data: { session }, error } = await supabase.auth.getSession();
-  
-  if (!session) {
-    const { data, error: signInError } = await supabase.auth.signInAnonymously();
-    if (signInError) {
-      return redirect(`/login?error=${signInError.message}`);
-    }
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return redirect(`/login?error=${error.message}`);
   }
 
   // Ensure DB is initialized for this student
-  const { data: authUser } = await supabase.auth.getUser();
-  if (authUser?.user) {
-    const adminClient = createServerClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { cookies: { get() { return ''; }, set() {}, remove() {} } }
-    );
-
-    const { data: student } = await (adminClient.from('students') as any).select('id').eq('auth_user_id', authUser.user.id).single();
-    
-    if (!student) {
-      let { data: stage } = await (adminClient.from('curriculum_stages') as any).select('id').eq('level_number', 1).single();
-      
-      if (!stage) {
-        throw new Error("Curriculum stages not found. Please run the curriculum seed script first.");
+  if (authData?.user) {
+    const { ensureStudentProfile } = await import('@/lib/auth/student');
+    try {
+      await ensureStudentProfile(authData.user.id);
+    } catch (e: any) {
+      if (e.message === 'ACCOUNT_PENDING_APPROVAL') {
+         // This is fine, they will be caught by the UI when they hit dashboard
+      } else {
+        console.error("Profile check failed:", e);
       }
-      
-      await (adminClient.from('students') as any).insert({
-        auth_user_id: authUser.user.id,
-        display_name: 'Student',
-        current_stage_id: stage.id
-      });
+    }
+  }
+
+  return redirect('/dashboard');
+}
+
+export async function signUp(formData: FormData) {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const name = formData.get('name') as string;
+
+  if (!email || !password || !name) {
+    return redirect('/login?error=Please fill all fields&mode=signup');
+  }
+
+  const cookieStore = await cookies();
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value; },
+        set(name: string, value: string, options: any) { cookieStore.set(name, value, options); },
+        remove(name: string, options: any) { cookieStore.set(name, '', options); },
+      },
+    }
+  );
+
+  const { data: authData, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: name,
+      }
+    }
+  });
+
+  if (error) {
+    return redirect(`/login?error=${error.message}&mode=signup`);
+  }
+
+  // Ensure DB is initialized for this student using their provided name
+  if (authData?.user) {
+    const { ensureStudentProfile } = await import('@/lib/auth/student');
+    try {
+      // Pass the name so it defaults correctly during insertion
+      await ensureStudentProfile(authData.user.id, name);
+    } catch (e: any) {
+      if (e.message === 'ACCOUNT_PENDING_APPROVAL') {
+         // Expected for new users!
+      } else {
+        console.error("Profile check failed:", e);
+      }
     }
   }
 

@@ -1,7 +1,7 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database.types';
 
-export async function ensureStudentProfile(userId: string) {
+export async function ensureStudentProfile(userId: string, displayName: string = 'Student') {
   const serviceClient = createServiceClient(); // use service client to bypass RLS for inserts
   
   const { data: student } = await (serviceClient.from('students') as any)
@@ -12,7 +12,8 @@ export async function ensureStudentProfile(userId: string) {
   if (student) {
     if (student.is_blocked) {
       const { AuthError } = await import('@/lib/error');
-      throw new AuthError('Your account has been suspended by an administrator.');
+      // Using a specific error message so error.tsx can render the Pending screen
+      throw new AuthError('ACCOUNT_PENDING_APPROVAL');
     }
     return student;
   }
@@ -36,16 +37,22 @@ export async function ensureStudentProfile(userId: string) {
     const { data: newStudent, error: insertError } = await (serviceClient.from('students') as any)
       .insert({
         auth_user_id: userId,
-        display_name: 'Student',
-        current_stage_id: stage.id
+        display_name: displayName,
+        current_stage_id: stage.id,
+        is_blocked: true // Blocked by default until admin approves
       })
-      .select('id, display_name, total_xp, current_streak')
+      .select('id, display_name, total_xp, current_streak, is_blocked')
       .single();
       
     if (insertError) {
       console.error("Failed to insert student:", insertError);
     }
       
+    if (newStudent?.is_blocked) {
+      const { AuthError } = await import('@/lib/error');
+      throw new AuthError('ACCOUNT_PENDING_APPROVAL');
+    }
+
     return newStudent;
   }
   
