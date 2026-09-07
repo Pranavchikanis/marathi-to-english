@@ -2,8 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  // Hardcoded to true to force maintenance mode immediately
-  const isMaintenanceMode = true;
+  // Check for maintenance mode
+  const isMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
 
   if (isMaintenanceMode) {
     const isMaintenancePath = request.nextUrl.pathname.startsWith('/maintenance');
