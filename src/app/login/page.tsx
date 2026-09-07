@@ -19,7 +19,7 @@ function LoginForm() {
           {mode === 'signin' ? 'Welcome Back' : 'Create an Account'}
         </h2>
         <p className="mt-2 text-sm text-text-secondary">
-          Tejaswini AI English Tutor
+          LingoLearn English Tutor
         </p>
       </div>
       
@@ -38,7 +38,7 @@ function LoginForm() {
               name="name"
               required
               className="mt-1 block w-full rounded-md border border-border-default bg-surface-default px-3 py-2 text-text-primary shadow-sm focus:border-interactive-default focus:outline-none focus:ring-1 focus:ring-interactive-default"
-              placeholder="Tejaswini"
+              placeholder="John Doe"
             />
           </div>
         )}

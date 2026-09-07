@@ -15,8 +15,8 @@ const mukta = Mukta({
 });
 
 export const metadata: Metadata = {
-  title: "Tejaswini AI English Tutor",
-  description: "A patient, beginner-friendly AI English tutor designed for Marathi speakers.",
+  title: "LingoLearn English Tutor",
+  description: "AI-powered spoken English practice for Marathi speakers",
 };
 
 export default function RootLayout({

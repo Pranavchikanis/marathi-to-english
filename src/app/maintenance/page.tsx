@@ -13,11 +13,11 @@ export default function MaintenancePage() {
             We'll be right back!
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-center text-text-secondary">
-          <p>
-            Tejaswini AI English Tutor is currently undergoing scheduled maintenance to improve your learning experience. 
+        <CardContent className="text-center">
+          <p className="text-text-secondary text-lg max-w-md mx-auto">
+            LingoLearn English Tutor is currently undergoing scheduled maintenance to improve your learning experience. 
           </p>
-          <p className="mt-4 text-sm font-medium">
+          <p className="mt-4 text-sm font-medium text-text-secondary">
             Please check back soon.
           </p>
         </CardContent>
