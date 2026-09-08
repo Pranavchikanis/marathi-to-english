@@ -1,5 +1,6 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database.types';
+import { redirect } from 'next/navigation';
 
 export async function ensureStudentProfile(userId: string, displayName: string = 'Student') {
   const serviceClient = createServiceClient(); // use service client to bypass RLS for inserts
@@ -11,9 +12,7 @@ export async function ensureStudentProfile(userId: string, displayName: string =
     
   if (student) {
     if (student.is_blocked) {
-      const { AuthError } = await import('@/lib/error');
-      // Using a specific error message so error.tsx can render the Pending screen
-      throw new AuthError('ACCOUNT_PENDING_APPROVAL');
+      redirect('/pending');
     }
     return student;
   }
@@ -49,8 +48,7 @@ export async function ensureStudentProfile(userId: string, displayName: string =
     }
       
     if (newStudent?.is_blocked) {
-      const { AuthError } = await import('@/lib/error');
-      throw new AuthError('ACCOUNT_PENDING_APPROVAL');
+      redirect('/pending');
     }
 
     return newStudent;
