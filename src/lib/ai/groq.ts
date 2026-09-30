@@ -47,7 +47,7 @@ export async function generateEvaluationContent(systemInstruction: string, conte
       const groq = getGroqClient();
       
       const response = await groq.chat.completions.create({
-        model: 'llama3-70b-8192',
+        model: 'llama-3.1-70b-versatile',
         messages: [
           { role: 'system', content: systemInstruction + '\n\nIMPORTANT: You must return ONLY valid JSON matching the exact schema requested. Do not include any markdown formatting like ```json or any conversational text.' },
           { role: 'user', content: contents }
@@ -201,7 +201,7 @@ Do NOT be overly strict about grammar. If they make a major mistake, gently mode
 If they speak to you in Marathi, reply in English but acknowledge what they said.`;
 
       const response = await groq.chat.completions.create({
-        model: 'llama3-70b-8192',
+        model: 'llama-3.1-70b-versatile',
         messages: [
           { role: 'system', content: systemInstruction },
           ...messages

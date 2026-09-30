@@ -10,7 +10,7 @@ export function usePlayback() {
     }
   }, [])
 
-  const playAudio = useCallback((text: string, lang = 'mr-IN') => {
+  const playAudio = useCallback((text: string, lang = 'en-IN') => {
     if (!isSupported) return
     
     window.speechSynthesis.cancel() // Stop any current speech
@@ -19,13 +19,13 @@ export function usePlayback() {
     utterance.lang = lang
     utterance.rate = 0.9 // Slower for beginners
 
-    // Try to find a specific voice for the language, fallback to Hindi if Marathi is missing
     const voices = window.speechSynthesis.getVoices()
-    let voice = voices.find(v => v.lang === lang || v.lang.replace('_', '-') === lang)
-    if (!voice && lang === 'mr-IN') {
-      // Fallback to Hindi if Marathi isn't available (Devanagari script is readable by Hindi TTS)
-      voice = voices.find(v => v.lang.startsWith('hi'))
-    }
+    
+    // Prefer Google Indian English voice, then any Indian English voice, then standard English
+    let voice = voices.find(v => v.lang === lang && v.name.includes('Google')) 
+             || voices.find(v => v.lang === lang)
+             || voices.find(v => v.lang.startsWith('en'));
+
     if (voice) {
       utterance.voice = voice
     }
