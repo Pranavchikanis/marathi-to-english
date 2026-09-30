@@ -39,6 +39,7 @@ export function usePlayback() {
       setIsPlaying(false)
     }
 
+    setIsPlaying(true) // Synchronous update to prevent race conditions with auto-mic
     window.speechSynthesis.speak(utterance)
   }, [isSupported])
 

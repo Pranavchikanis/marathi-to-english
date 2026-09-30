@@ -48,7 +48,7 @@ export default function ConversationPage() {
     if (!isPlaying && !isProcessing && speechState === 'IDLE' && transcript.trim() === '') {
       const timer = setTimeout(() => {
         startRecording();
-      }, 400); // slight pause to let the AI's audio breathe
+      }, 800); // Wait 800ms to ensure audio echo is completely gone
       return () => clearTimeout(timer);
     }
   }, [isPlaying, isProcessing, speechState, transcript, startRecording]);
