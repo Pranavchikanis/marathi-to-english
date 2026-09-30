@@ -43,6 +43,16 @@ export default function ConversationPage() {
     }
   }, [speechState, transcript, isProcessing, resetSpeech]);
 
+  // Seamless Hands-Free Loop: Automatically start listening when AI finishes speaking
+  useEffect(() => {
+    if (!isPlaying && !isProcessing && speechState === 'IDLE' && transcript.trim() === '') {
+      const timer = setTimeout(() => {
+        startRecording();
+      }, 400); // slight pause to let the AI's audio breathe
+      return () => clearTimeout(timer);
+    }
+  }, [isPlaying, isProcessing, speechState, transcript, startRecording]);
+
   const handleUserSubmit = async (text: string) => {
     setIsProcessing(true);
     stopAudio(); // Stop any current AI speech if user interrupts
@@ -130,26 +140,33 @@ export default function ConversationPage() {
       </main>
 
       {/* Control Area - Siri Style Orb */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-surface-default via-surface-default to-transparent flex flex-col items-center justify-end pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-surface-default via-surface-default/90 to-transparent flex flex-col items-center justify-end pointer-events-none pb-12">
         
-        <div className="text-sm font-medium text-text-secondary mb-6 h-6 pointer-events-auto">
+        <div className="text-base font-medium text-text-secondary mb-8 h-6 pointer-events-auto transition-opacity duration-300">
           {isProcessing ? 'Thinking...' : isListening ? 'Listening... (Tap to stop)' : isPlaying ? 'Speaking...' : 'Tap to speak'}
         </div>
 
-        <div className="relative pointer-events-auto">
-          {/* Pulsing rings */}
-          {showPulse && (
-            <>
-              <div className="absolute inset-0 rounded-full bg-interactive-default/20 animate-ping" style={{ animationDuration: '2s' }}></div>
-              <div className="absolute inset-[-20px] rounded-full bg-interactive-default/10 animate-pulse" style={{ animationDuration: '1.5s' }}></div>
-            </>
-          )}
+        <div className="relative pointer-events-auto flex items-center justify-center">
           
+          {/* Dynamic Background Glows */}
+          <div className={`absolute rounded-full transition-all duration-1000 blur-2xl ${
+            isPlaying ? 'inset-[-60px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-spin opacity-50' : 'opacity-0'
+          }`} style={{ animationDuration: '5s' }}></div>
+          
+          <div className={`absolute rounded-full transition-all duration-500 ${
+            isListening ? 'inset-[-30px] bg-status-error/30 animate-ping opacity-100' : 
+            isProcessing ? 'inset-[-20px] bg-interactive-default/20 animate-pulse opacity-100' : 'opacity-0'
+          }`} style={{ animationDuration: '2s' }}></div>
+          
+          {/* Main Orb Button */}
           <Button
             size="lg"
-            variant={isListening ? "secondary" : "default"}
-            className={`relative z-10 w-20 h-20 rounded-full shadow-2xl transition-all duration-300 ${
-              isListening ? 'scale-110 shadow-status-error/40' : 'hover:scale-105'
+            variant="default"
+            className={`relative z-10 w-24 h-24 rounded-full shadow-2xl transition-all duration-500 border-none ${
+              isListening ? 'scale-110 bg-status-error hover:bg-status-error shadow-[0_0_40px_rgba(239,68,68,0.5)]' : 
+              isPlaying ? 'scale-105 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_40px_rgba(168,85,247,0.5)]' : 
+              isProcessing ? 'scale-100 bg-surface-elevated text-interactive-default border border-interactive-default/50 shadow-none' : 
+              'scale-100 bg-interactive-default hover:bg-interactive-hover hover:scale-105 shadow-[0_10px_30px_rgba(79,70,229,0.3)]'
             }`}
             onClick={() => {
               if (isListening) {
@@ -162,9 +179,13 @@ export default function ConversationPage() {
             style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none', userSelect: 'none' }}
           >
             {isListening ? (
-              <Mic className="w-8 h-8 text-white" />
+              <Mic className="w-10 h-10 text-white animate-pulse" />
+            ) : isProcessing ? (
+              <Loader2 className="w-10 h-10 animate-spin text-interactive-default" />
+            ) : isPlaying ? (
+              <Volume2 className="w-10 h-10 text-white animate-bounce" />
             ) : (
-              <Mic className="w-8 h-8 text-white" />
+              <Mic className="w-10 h-10 text-white" />
             )}
           </Button>
         </div>
