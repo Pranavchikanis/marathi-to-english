@@ -151,12 +151,20 @@ export default function ConversationPage() {
             className={`relative z-10 w-20 h-20 rounded-full shadow-2xl transition-all duration-300 ${
               isListening ? 'scale-110 shadow-status-error/40' : 'hover:scale-105'
             }`}
-            onMouseDown={startRecording}
-            onMouseUp={stopRecording}
-            onMouseLeave={stopRecording}
-            onTouchStart={startRecording}
-            onTouchEnd={stopRecording}
+            onPointerDown={(e) => {
+              // Prevent context menu and text selection on mobile long press
+              // e.currentTarget.setPointerCapture(e.pointerId);
+              startRecording();
+            }}
+            onPointerUp={(e) => {
+              // e.currentTarget.releasePointerCapture(e.pointerId);
+              stopRecording();
+            }}
+            onPointerLeave={stopRecording}
+            onPointerCancel={stopRecording}
+            onContextMenu={(e) => e.preventDefault()}
             disabled={isProcessing}
+            style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none', userSelect: 'none' }}
           >
             {isListening ? (
               <Mic className="w-8 h-8 text-white" />
