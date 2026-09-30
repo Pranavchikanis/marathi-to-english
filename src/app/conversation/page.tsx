@@ -147,7 +147,7 @@ export default function ConversationPage() {
           
           <Button
             size="lg"
-            variant={isListening ? "destructive" : "default"}
+            variant={isListening ? "secondary" : "default"}
             className={`relative z-10 w-20 h-20 rounded-full shadow-2xl transition-all duration-300 ${
               isListening ? 'scale-110 shadow-status-error/40' : 'hover:scale-105'
             }`}
