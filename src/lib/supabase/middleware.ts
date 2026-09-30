@@ -49,15 +49,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // Zero-network auth check: We just check if the auth token cookie exists.
+  // This prevents Vercel Edge 504 timeouts caused by slow Supabase API responses.
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.endsWith('-auth-token'));
   
-  const user = session?.user;
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/practice') || request.nextUrl.pathname.startsWith('/dashboard') || request.nextUrl.pathname.startsWith('/conversation');
 
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/practice') || request.nextUrl.pathname.startsWith('/dashboard');
-
-  if (!user && isProtectedRoute) {
+  if (!hasAuthCookie && isProtectedRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
@@ -76,7 +74,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If user is signed in and trying to go to login, redirect to dashboard
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  if (hasAuthCookie && request.nextUrl.pathname.startsWith('/login')) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       return NextResponse.redirect(url);
