@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Flame, Trophy } from "lucide-react"
+import { Flame, Trophy, Mic } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { ensureStudentProfile } from "@/lib/auth/student"
 
@@ -56,11 +56,19 @@ export default async function DashboardPage() {
       </div>
 
       <div className="w-full max-w-2xl text-center space-y-6">
-        <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] text-lg rounded-full">
-          <Link href="/practice">
-            Start Practice
-          </Link>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Button asChild size="lg" className="w-full sm:w-auto min-w-[200px] text-lg rounded-full">
+            <Link href="/practice">
+              Start Practice
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto min-w-[200px] text-lg rounded-full">
+            <Link href="/conversation" className="flex items-center gap-2">
+              <Mic className="w-5 h-5" />
+              Conversation Mode
+            </Link>
+          </Button>
+        </div>
         
         <p className="text-sm text-text-muted">
           Your daily plan includes 10 translation exercises.

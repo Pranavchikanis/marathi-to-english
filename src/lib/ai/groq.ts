@@ -185,3 +185,44 @@ Do not return anything other than the JSON object.`;
   }
   throw new Error("Failed to generate concept after retries");
 }
+
+export async function generateConversationReply(
+  messages: { role: 'user' | 'assistant', content: string }[],
+  maxRetries = 3
+): Promise<string> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      const groq = getGroqClient();
+      const systemInstruction = `You are an encouraging and patient English conversation partner for a Marathi speaker learning English.
+Keep your responses VERY short and natural (1 to 2 sentences max). 
+Your goal is to keep the conversation flowing. Ask light follow-up questions to encourage them to keep talking.
+Do NOT be overly strict about grammar. If they make a major mistake, gently model the correct phrasing in your response, but do not interrupt the flow with a formal lesson.
+If they speak to you in Marathi, reply in English but acknowledge what they said.`;
+
+      const response = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-120b',
+        messages: [
+          { role: 'system', content: systemInstruction },
+          ...messages
+        ],
+        temperature: 0.7,
+        max_tokens: 150,
+      });
+
+      const text = response.choices[0]?.message?.content;
+      if (!text) {
+        throw new Error('Groq returned empty response for conversation');
+      }
+
+      return text.trim();
+    } catch (error: any) {
+      attempt++;
+      if (attempt >= maxRetries) {
+        throw error;
+      }
+      await new Promise(res => setTimeout(res, 500 * Math.pow(2, attempt)));
+    }
+  }
+  throw new Error("Failed to generate conversation reply after retries");
+}
