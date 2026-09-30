@@ -43,15 +43,7 @@ export default function ConversationPage() {
     }
   }, [speechState, transcript, isProcessing, resetSpeech]);
 
-  // Seamless Hands-Free Loop: Automatically start listening when AI finishes speaking
-  useEffect(() => {
-    if (!isPlaying && !isProcessing && speechState === 'IDLE' && transcript.trim() === '') {
-      const timer = setTimeout(() => {
-        startRecording();
-      }, 800); // Wait 800ms to ensure audio echo is completely gone
-      return () => clearTimeout(timer);
-    }
-  }, [isPlaying, isProcessing, speechState, transcript, startRecording]);
+
 
   const handleUserSubmit = async (text: string) => {
     setIsProcessing(true);
