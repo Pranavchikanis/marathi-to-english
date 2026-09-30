@@ -25,7 +25,8 @@ export function usePlayback() {
     let voice = voices.find(v => v.lang === lang && v.name.includes('Natural'))
              || voices.find(v => v.lang === lang && v.name.includes('Google'))
              || voices.find(v => v.lang === lang)
-             || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+             || voices.find(v => v.lang.startsWith(lang.split('-')[0]))
+             || (lang.startsWith('mr') ? voices.find(v => v.lang.startsWith('hi')) : undefined); // Fallback to Hindi for Marathi (since both use Devanagari script and Hindi is more commonly installed)
              
     // Fallback
     if (!voice) {
