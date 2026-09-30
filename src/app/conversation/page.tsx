@@ -133,7 +133,7 @@ export default function ConversationPage() {
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-surface-default via-surface-default to-transparent flex flex-col items-center justify-end pointer-events-none">
         
         <div className="text-sm font-medium text-text-secondary mb-6 h-6 pointer-events-auto">
-          {isProcessing ? 'Thinking...' : isListening ? 'Listening...' : isPlaying ? 'Speaking...' : 'Hold to speak'}
+          {isProcessing ? 'Thinking...' : isListening ? 'Listening... (Tap to stop)' : isPlaying ? 'Speaking...' : 'Tap to speak'}
         </div>
 
         <div className="relative pointer-events-auto">
@@ -151,18 +151,13 @@ export default function ConversationPage() {
             className={`relative z-10 w-20 h-20 rounded-full shadow-2xl transition-all duration-300 ${
               isListening ? 'scale-110 shadow-status-error/40' : 'hover:scale-105'
             }`}
-            onPointerDown={(e) => {
-              // Prevent context menu and text selection on mobile long press
-              // e.currentTarget.setPointerCapture(e.pointerId);
-              startRecording();
+            onClick={() => {
+              if (isListening) {
+                stopRecording();
+              } else {
+                startRecording();
+              }
             }}
-            onPointerUp={(e) => {
-              // e.currentTarget.releasePointerCapture(e.pointerId);
-              stopRecording();
-            }}
-            onPointerLeave={stopRecording}
-            onPointerCancel={stopRecording}
-            onContextMenu={(e) => e.preventDefault()}
             disabled={isProcessing}
             style={{ WebkitUserSelect: 'none', WebkitTouchCallout: 'none', touchAction: 'none', userSelect: 'none' }}
           >
