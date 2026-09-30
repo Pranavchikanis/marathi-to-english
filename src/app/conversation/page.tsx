@@ -139,29 +139,29 @@ export default function ConversationPage() {
       </main>
 
       {/* Control Area - Siri Style Orb */}
-      <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-surface-default via-surface-default/90 to-transparent flex flex-col items-center justify-end pointer-events-none pb-12">
+      <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-white via-white/90 to-transparent flex flex-col items-center justify-end pointer-events-none pb-12">
         
         {/* Language Toggle */}
-        <div className="flex items-center gap-1 mb-6 pointer-events-auto bg-white/50 backdrop-blur-md p-1.5 rounded-full shadow-sm border border-gray-200">
+        <div className="flex items-center mb-6 pointer-events-auto bg-gray-100 p-1 rounded-full shadow-inner border border-gray-200">
           <button
             onClick={() => setSpeakingLanguage('mr-IN')}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-              speakingLanguage === 'mr-IN' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+              speakingLanguage === 'mr-IN' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             मराठी
           </button>
           <button
             onClick={() => setSpeakingLanguage('en-IN')}
-            className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-              speakingLanguage === 'en-IN' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-600 hover:text-gray-900'
+            className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+              speakingLanguage === 'en-IN' ? 'bg-white text-purple-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             English
           </button>
         </div>
 
-        <div className="text-base font-medium text-text-secondary mb-8 h-6 pointer-events-auto transition-opacity duration-300">
+        <div className="text-base font-medium text-gray-600 mb-8 h-6 pointer-events-auto transition-opacity duration-300">
           {isProcessing ? 'Thinking...' : isListening ? 'Listening... (Tap to stop)' : isPlaying ? 'Speaking...' : 'Tap to speak'}
         </div>
 
@@ -173,19 +173,19 @@ export default function ConversationPage() {
           }`} style={{ animationDuration: '5s' }}></div>
           
           <div className={`absolute rounded-full transition-all duration-500 ${
-            isListening ? 'inset-[-30px] bg-status-error/30 animate-ping opacity-100' : 
-            isProcessing ? 'inset-[-20px] bg-interactive-default/20 animate-pulse opacity-100' : 'opacity-0'
+            isListening ? 'inset-[-30px] bg-red-500/30 animate-ping opacity-100' : 
+            isProcessing ? 'inset-[-20px] bg-purple-500/20 animate-pulse opacity-100' : 'opacity-0'
           }`} style={{ animationDuration: '2s' }}></div>
           
           {/* Main Orb Button */}
           <Button
             size="lg"
             variant="default"
-            className={`relative z-10 w-24 h-24 rounded-full shadow-2xl transition-all duration-500 border-none ${
-              isListening ? 'scale-110 bg-status-error hover:bg-status-error shadow-[0_0_40px_rgba(239,68,68,0.5)]' : 
+            className={`relative z-10 w-24 h-24 rounded-full shadow-2xl transition-all duration-500 border-none flex items-center justify-center ${
+              isListening ? 'scale-110 bg-red-500 hover:bg-red-600 shadow-[0_0_40px_rgba(239,68,68,0.5)]' : 
               isPlaying ? 'scale-105 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_40px_rgba(168,85,247,0.5)]' : 
-              isProcessing ? 'scale-100 bg-surface-elevated text-interactive-default border border-interactive-default/50 shadow-none' : 
-              'scale-100 bg-interactive-default hover:bg-interactive-hover hover:scale-105 shadow-[0_10px_30px_rgba(79,70,229,0.3)]'
+              isProcessing ? 'scale-100 bg-white text-purple-600 border border-purple-200 shadow-none' : 
+              'scale-100 bg-purple-600 hover:bg-purple-700 hover:scale-105 shadow-[0_10px_30px_rgba(147,51,234,0.3)]'
             }`}
             onClick={() => {
               if (isListening) {
@@ -200,7 +200,7 @@ export default function ConversationPage() {
             {isListening ? (
               <Mic className="w-10 h-10 text-white animate-pulse" />
             ) : isProcessing ? (
-              <Loader2 className="w-10 h-10 animate-spin text-interactive-default" />
+              <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
             ) : isPlaying ? (
               <Volume2 className="w-10 h-10 text-white animate-bounce" />
             ) : (
