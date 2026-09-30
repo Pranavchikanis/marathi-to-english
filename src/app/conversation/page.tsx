@@ -18,8 +18,9 @@ export default function ConversationPage() {
     }
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [speakingLanguage, setSpeakingLanguage] = useState<'en-IN' | 'mr-IN'>('en-IN');
   
-  const { state: speechState, transcript, startRecording, stopRecording, reset: resetSpeech } = useSpeech('mr-IN'); // Set to Marathi to accurately capture Marathi spoken words
+  const { state: speechState, transcript, startRecording, stopRecording, reset: resetSpeech } = useSpeech(speakingLanguage);
   const { playAudio, isPlaying, stopAudio } = usePlayback();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -137,6 +138,26 @@ export default function ConversationPage() {
       {/* Control Area - Siri Style Orb */}
       <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-surface-default via-surface-default/90 to-transparent flex flex-col items-center justify-end pointer-events-none pb-12">
         
+        {/* Language Toggle */}
+        <div className="flex items-center gap-1 mb-4 pointer-events-auto bg-surface-elevated/80 backdrop-blur-md p-1 rounded-full border border-border-default shadow-sm">
+          <button
+            onClick={() => setSpeakingLanguage('mr-IN')}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+              speakingLanguage === 'mr-IN' ? 'bg-interactive-default text-white shadow-md' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Speak Marathi
+          </button>
+          <button
+            onClick={() => setSpeakingLanguage('en-IN')}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${
+              speakingLanguage === 'en-IN' ? 'bg-interactive-default text-white shadow-md' : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            Speak English
+          </button>
+        </div>
+
         <div className="text-base font-medium text-text-secondary mb-8 h-6 pointer-events-auto transition-opacity duration-300">
           {isProcessing ? 'Thinking...' : isListening ? 'Listening... (Tap to stop)' : isPlaying ? 'Speaking...' : 'Tap to speak'}
         </div>
