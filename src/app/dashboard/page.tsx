@@ -8,9 +8,16 @@ import { ensureStudentProfile } from "@/lib/auth/student"
 import { NameEditor } from "./components/NameEditor"
 import { ForceNameModal } from "./components/ForceNameModal"
 
+import { redirect } from 'next/navigation'
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    // If the token is invalid or the user was deleted in the dashboard, redirect to login
+    redirect('/login');
+  }
 
   let studentName = "Student";
   let totalXp = 0;

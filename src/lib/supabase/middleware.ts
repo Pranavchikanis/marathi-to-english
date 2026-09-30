@@ -73,12 +73,5 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // If user is signed in and trying to go to login, redirect to dashboard
-  if (hasAuthCookie && request.nextUrl.pathname.startsWith('/login')) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
-      return NextResponse.redirect(url);
-  }
-
   return supabaseResponse;
 }
