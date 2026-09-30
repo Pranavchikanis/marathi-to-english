@@ -19,7 +19,7 @@ export default function ConversationPage() {
   ]);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const { state: speechState, transcript, startRecording, stopRecording, reset: resetSpeech } = useSpeech('en-IN'); // Try to recognize English mostly, but works okay for mixing
+  const { state: speechState, transcript, startRecording, stopRecording, reset: resetSpeech } = useSpeech('mr-IN'); // Set to Marathi to accurately capture Marathi spoken words
   const { playAudio, isPlaying, stopAudio } = usePlayback();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);

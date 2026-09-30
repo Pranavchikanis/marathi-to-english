@@ -21,8 +21,9 @@ export function usePlayback() {
 
     const voices = window.speechSynthesis.getVoices()
     
-    // Prefer Google Indian English voice, then any Indian English voice, then standard English
-    let voice = voices.find(v => v.lang === lang && v.name.includes('Google')) 
+    // Prefer high-quality Natural (Microsoft) or Google voices first, then any English voice
+    let voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural'))
+             || voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
              || voices.find(v => v.lang === lang)
              || voices.find(v => v.lang.startsWith('en'));
 
