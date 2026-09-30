@@ -36,8 +36,7 @@ export default function ConversationPage() {
       playAudio(messages[0].content);
       hasGreeted.current = true;
     }
-    return () => stopAudio();
-  }, [playAudio, stopAudio, messages]);
+  }, [playAudio]); // Removed stopAudio cleanup which was cancelling AI replies
 
   // Handle when user stops speaking
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function ConversationPage() {
       handleUserSubmit(transcript.trim());
       resetSpeech();
     }
-  }, [speechState, transcript, isProcessing, resetSpeech]);
+  }, [speechState, transcript, isProcessing, resetSpeech, messages]); // Added messages to prevent stale closure
 
 
 
