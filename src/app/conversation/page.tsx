@@ -30,8 +30,12 @@ export default function ConversationPage() {
   }, [messages, transcript, isProcessing]);
 
   // Initial greeting
+  const hasGreeted = useRef(false);
   useEffect(() => {
-    playAudio(messages[0].content);
+    if (!hasGreeted.current) {
+      playAudio(messages[0].content);
+      hasGreeted.current = true;
+    }
     return () => stopAudio();
   }, [playAudio, stopAudio, messages]);
 
