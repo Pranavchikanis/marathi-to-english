@@ -21,11 +21,16 @@ export function usePlayback() {
 
     const voices = window.speechSynthesis.getVoices()
     
-    // Prefer high-quality Natural (Microsoft) or Google voices first, then any English voice
-    let voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural'))
-             || voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
+    // Respect the requested language first, preferring high quality neural voices
+    let voice = voices.find(v => v.lang === lang && v.name.includes('Natural'))
+             || voices.find(v => v.lang === lang && v.name.includes('Google'))
              || voices.find(v => v.lang === lang)
-             || voices.find(v => v.lang.startsWith('en'));
+             || voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+             
+    // Fallback
+    if (!voice) {
+      voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) || voices[0];
+    }
 
     if (voice) {
       utterance.voice = voice
