@@ -101,7 +101,7 @@ export default function ConversationPage() {
       </header>
 
       {/* Chat Area */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-40">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-[300px]">
         {messages.map((msg) => (
           <div
             key={msg.id}
