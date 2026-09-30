@@ -50,8 +50,10 @@ export async function updateSession(request: NextRequest) {
   );
 
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  
+  const user = session?.user;
 
   const isProtectedRoute = request.nextUrl.pathname.startsWith('/practice') || request.nextUrl.pathname.startsWith('/dashboard');
 
