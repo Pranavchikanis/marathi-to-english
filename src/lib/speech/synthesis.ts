@@ -34,10 +34,8 @@ export function usePlayback() {
       return;
     }
     const text = queueRef.current.shift()!;
-    // Google's Hindi voice is much more advanced/natural than their Marathi voice, 
-    // and since both use Devanagari script, the Hindi voice reads Marathi perfectly.
-    const ttsLang = currentLangRef.current === 'mr' ? 'hi' : currentLangRef.current;
-    const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${ttsLang}`;
+    // Use the native voice for fluency (now that symbols are stripped, it should sound much better)
+    const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${currentLangRef.current}`;
     
     const audio = audioRef.current;
     if (!audio) return;
