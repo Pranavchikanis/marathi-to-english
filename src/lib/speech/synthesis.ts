@@ -57,8 +57,11 @@ export function usePlayback() {
     setIsPlaying(true);
     currentLangRef.current = lang.split('-')[0]; // google uses 'en' or 'mr'
     
+    // Strip markdown formatting (bold, italic, code blocks, etc) so TTS doesn't read asterisks
+    const cleanText = text.replace(/[*_#`~]/g, '');
+    
     // Split into chunks of max 150 chars by punctuation to respect Google TTS limits
-    const chunks = text.match(/[^.!?]+[.!?]+/g) || [text];
+    const chunks = cleanText.match(/[^.!?]+[.!?]+/g) || [cleanText];
     
     // Further split any overly long chunks
     const finalChunks: string[] = [];
