@@ -35,7 +35,7 @@ export async function processConversationTurn(
 
   if (!student) throw new Error("Student not found");
   if (student.trial_credits <= 0) {
-    throw new Error("TRIAL_EXPIRED: Your free trial has expired. Please contact support to upgrade your plan.");
+    throw new Error("API_QUOTA_EXCEEDED: The upstream AI provider (Groq) has exhausted its free tier limits for this session. Please upgrade the server to a paid API tier to continue.");
   }
 
   // Deduct 1 credit

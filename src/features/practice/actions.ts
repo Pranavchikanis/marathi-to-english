@@ -83,7 +83,7 @@ export const submitAnswer = withErrorHandling(async (input: SubmitAnswerRequest)
 
   if (!student) throw new AuthError("Student not found");
   if (student.trial_credits <= 0) {
-    throw new ProviderError("TRIAL_EXPIRED: Your free trial has expired. Please contact support to upgrade your plan.");
+    throw new ProviderError("API_QUOTA_EXCEEDED: The upstream AI provider (Groq) has exhausted its free tier limits for this session. Please upgrade the server to a paid API tier to continue.");
   }
 
   // Generate AI Evaluation
