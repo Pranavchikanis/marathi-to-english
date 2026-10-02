@@ -25,7 +25,7 @@ export async function GET(req: Request) {
         headers: {
           'Ocp-Apim-Subscription-Key': azureKey,
           'Content-Type': 'application/ssml+xml',
-          'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+          'X-Microsoft-OutputFormat': 'audio-48khz-192kbitrate-mono-mp3',
           'User-Agent': 'MarathiEnglishApp'
         },
         body: ssml
