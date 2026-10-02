@@ -7,6 +7,7 @@ import { ActionResult } from '@/types/api.types'
 import { revalidatePath } from 'next/cache'
 import { withErrorHandling, ValidationError, AuthError, DuplicateSubmissionError, NotFoundError, ProviderError, AppError } from '@/lib/error'
 import { z } from 'zod'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const sessionIdSchema = z.string().uuid()
 
@@ -68,9 +69,29 @@ export const submitAnswer = withErrorHandling(async (input: SubmitAnswerRequest)
 
   const exerciseData = (sessionExercise as unknown as Record<string, unknown>)?.exercises as unknown as { marathi_prompt: string, reference_translations: string[], concepts: { name: string } };
 
+  const supabaseService = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Check Trial Credits
+  const { data: student } = await supabaseService
+    .from('students')
+    .select('id, trial_credits')
+    .eq('auth_user_id', user.id)
+    .single();
+
+  if (!student) throw new AuthError("Student not found");
+  if (student.trial_credits <= 0) {
+    throw new ProviderError("TRIAL_EXPIRED: Your free trial has expired. Please contact support to upgrade your plan.");
+  }
+
   // Generate AI Evaluation
   const { EvaluationService } = await import('@/lib/ai/evaluation.service')
   const evalService = new EvaluationService();
+  
+  // Deduct 1 credit
+  await supabaseService.from('students').update({ trial_credits: student.trial_credits - 1 }).eq('id', student.id);
   
   let evaluationResult;
   try {

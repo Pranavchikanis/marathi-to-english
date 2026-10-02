@@ -1,0 +1,1 @@
+ALTER TABLE students ADD COLUMN trial_credits INT NOT NULL DEFAULT 20;

@@ -2,6 +2,7 @@
 
 import { generateConversationReply } from '@/lib/ai/groq';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 export type ConversationMessage = {
   id: string;
@@ -18,6 +19,27 @@ export async function processConversationTurn(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
+
+  const serviceClient = await createClient(); 
+  
+  const supabaseService = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: student } = await supabaseService
+    .from('students')
+    .select('id, trial_credits')
+    .eq('auth_user_id', user.id)
+    .single();
+
+  if (!student) throw new Error("Student not found");
+  if (student.trial_credits <= 0) {
+    throw new Error("TRIAL_EXPIRED: Your free trial has expired. Please contact support to upgrade your plan.");
+  }
+
+  // Deduct 1 credit
+  await supabaseService.from('students').update({ trial_credits: student.trial_credits - 1 }).eq('id', student.id);
 
   // Keep only the last 10 messages for context to save tokens and stay relevant
   const recentHistory = history.slice(-10);
