@@ -15,10 +15,10 @@ export async function GET(req: Request) {
     const azureRegion = process.env.AZURE_SPEECH_REGION;
 
     if (azureKey && azureRegion) {
-      // Use NeerjaNeural (Bilingual Indian English + Hindi/Marathi) so it perfectly pronounces 
-      // both the Devanagari script AND the English sentences without skipping words or sounding robotic.
-      const voiceName = 'en-IN-NeerjaNeural';
-      const ssml = `<speak version='1.0' xml:lang='en-IN'><voice xml:lang='en-IN' name='${voiceName}'>${text}</voice></speak>`;
+      // Use AarohiNeural (Native Marathi voice). 
+      // NeerjaNeural skipped Devanagari text entirely.
+      const voiceName = 'mr-IN-AarohiNeural';
+      const ssml = `<speak version='1.0' xml:lang='mr-IN'><voice xml:lang='mr-IN' name='${voiceName}'>${text}</voice></speak>`;
 
       const azureResponse = await fetch(`https://${azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
         method: 'POST',
