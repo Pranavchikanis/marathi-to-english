@@ -60,22 +60,7 @@ export function usePlayback() {
     
     // Strip markdown formatting (bold, italic, code blocks, etc) so TTS doesn't read asterisks
     const cleanText = text.replace(/[*_#`~]/g, '');
-    
-    // Split into chunks of max 150 chars by punctuation to respect Google TTS limits
-    const chunks = cleanText.match(/[^.!?]+[.!?]+/g) || [cleanText];
-    
-    // Further split any overly long chunks
-    const finalChunks: string[] = [];
-    chunks.forEach(chunk => {
-      if (chunk.length > 150) {
-        const subchunks = chunk.match(/.{1,150}(\s|$)/g) || [chunk];
-        finalChunks.push(...subchunks.map(s => s.trim()).filter(Boolean));
-      } else {
-        finalChunks.push(chunk.trim());
-      }
-    });
-
-    queueRef.current = finalChunks.filter(Boolean);
+    queueRef.current = [cleanText.trim()].filter(Boolean);
     playNextInQueue();
     
   }, [playNextInQueue]);
