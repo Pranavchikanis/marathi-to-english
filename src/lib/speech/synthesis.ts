@@ -34,7 +34,7 @@ export function usePlayback() {
       return;
     }
     const text = queueRef.current.shift()!;
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${currentLangRef.current}&client=tw-ob`;
+    const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${currentLangRef.current}`;
     
     const audio = audioRef.current;
     if (!audio) return;
