@@ -82,6 +82,10 @@ export const submitAnswer = withErrorHandling(async (input: SubmitAnswerRequest)
     .single();
 
   if (!student) throw new AuthError("Student not found");
+  
+  // TEMPORARY: Force credits to 0 for the browser demo
+  student.trial_credits = 0;
+
   if (student.trial_credits <= 0) {
     throw new ProviderError("API_QUOTA_EXCEEDED: The upstream AI provider (Groq) has exhausted its free tier limits for this session. Please upgrade the server to a paid API tier to continue.");
   }
