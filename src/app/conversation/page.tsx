@@ -21,7 +21,7 @@ export default function ConversationPage() {
   const [speakingLanguage, setSpeakingLanguage] = useState<'en-IN' | 'mr-IN'>('en-IN');
   
   const { state: speechState, transcript, startRecording, stopRecording, reset: resetSpeech } = useSpeech(speakingLanguage);
-  const { playAudio, isPlaying, stopAudio } = usePlayback();
+  const { playAudio, isPlaying, stopAudio, unlockAudio } = usePlayback();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -191,6 +191,7 @@ export default function ConversationPage() {
               if (isListening) {
                 stopRecording();
               } else {
+                unlockAudio();
                 startRecording();
               }
             }}

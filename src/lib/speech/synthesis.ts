@@ -7,12 +7,25 @@ export function usePlayback() {
   const currentLangRef = useRef<string>('en');
 
   useEffect(() => {
+    if (!audioRef.current && typeof window !== 'undefined') {
+      audioRef.current = new Audio();
+    }
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
     };
+  }, []);
+
+  const unlockAudio = useCallback(() => {
+    if (audioRef.current) {
+      // Play a tiny silent payload to unlock autoplay on iOS/mobile Safari
+      audioRef.current.src = 'data:audio/mp3;base64,//OigAAAAAAQQcQAAAQAACADcIADz//+//OAAD//+//OAAD';
+      audioRef.current.play().then(() => {
+        audioRef.current?.pause();
+      }).catch(() => {});
+    }
   }, []);
 
   const playNextInQueue = useCallback(() => {
@@ -23,9 +36,10 @@ export function usePlayback() {
     const text = queueRef.current.shift()!;
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${currentLangRef.current}&client=tw-ob`;
     
-    const audio = new Audio(url);
-    audioRef.current = audio;
+    const audio = audioRef.current;
+    if (!audio) return;
     
+    audio.src = url;
     audio.onended = () => playNextInQueue();
     audio.onerror = () => playNextInQueue();
     
@@ -38,7 +52,6 @@ export function usePlayback() {
   const playAudio = useCallback((text: string, lang = 'en-IN') => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current = null;
     }
     
     setIsPlaying(true);
@@ -66,7 +79,6 @@ export function usePlayback() {
   const stopAudio = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
-      audioRef.current = null;
     }
     queueRef.current = [];
     setIsPlaying(false);
@@ -75,6 +87,7 @@ export function usePlayback() {
   return {
     playAudio,
     stopAudio,
+    unlockAudio,
     isPlaying,
     isSupported: true
   }
