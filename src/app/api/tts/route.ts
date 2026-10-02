@@ -10,6 +10,39 @@ export async function GET(req: Request) {
   }
 
   try {
+    // 1. Try Premium Azure TTS if API keys are configured
+    const azureKey = process.env.AZURE_SPEECH_KEY;
+    const azureRegion = process.env.AZURE_SPEECH_REGION;
+
+    if (azureKey && azureRegion) {
+      const voiceName = lang.startsWith('mr') ? 'mr-IN-AarohiNeural' : 'en-IN-NeerjaNeural';
+      const ssml = `<speak version='1.0' xml:lang='${lang}'><voice xml:lang='${lang}' name='${voiceName}'>${text}</voice></speak>`;
+
+      const azureResponse = await fetch(`https://${azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+        method: 'POST',
+        headers: {
+          'Ocp-Apim-Subscription-Key': azureKey,
+          'Content-Type': 'application/ssml+xml',
+          'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+          'User-Agent': 'MarathiEnglishApp'
+        },
+        body: ssml
+      });
+
+      if (azureResponse.ok) {
+        const audioBuffer = await azureResponse.arrayBuffer();
+        return new NextResponse(audioBuffer, {
+          headers: {
+            'Content-Type': 'audio/mpeg',
+            'Cache-Control': 'public, max-age=31536000',
+          }
+        });
+      } else {
+        console.error('Azure TTS failed, falling back to Google. Status:', azureResponse.status);
+      }
+    }
+
+    // 2. Fallback to Google Translate TTS
     const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
     
     const response = await fetch(googleTtsUrl, {

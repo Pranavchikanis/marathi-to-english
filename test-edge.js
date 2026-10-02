@@ -1,6 +1,24 @@
 const crypto = require('crypto');
-const WebSocket = require('ws'); // In Node we use ws package, in Edge we use native WebSocket
+const WebSocket = require('ws'); 
 const fs = require('fs');
+
+function getEdgeHeaders() {
+    const unixEpochToWinEpochMs = 11644473600000n;
+    const currentUnixMs = BigInt(Date.now());
+    const ticks = (currentUnixMs + unixEpochToWinEpochMs) * 10000n;
+    const roundedTicks = ticks - (ticks % 3000000000n);
+    
+    const hash = crypto.createHash('sha256')
+        .update(roundedTicks.toString() + "6A5AA1D4EAFF4E9FB37E23D68491D6F4", 'utf8')
+        .digest('hex').toUpperCase();
+        
+    return {
+        'Sec-MS-GEC': hash,
+        'Sec-MS-GEC-Version': '1-130.0.2849.68',
+        'Origin': 'chrome-extension://jdiccldimpdaibmpndjcgndbkbkajjnp',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.2849.68'
+    };
+}
 
 function generateUUID() {
     return crypto.randomUUID().replace(/-/g, '');
@@ -9,10 +27,7 @@ function generateUUID() {
 async function getAudio(text, voice) {
     return new Promise((resolve, reject) => {
         const ws = new WebSocket('wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F4', {
-            headers: {
-                'Origin': 'chrome-extension://jdiccldimpdaibmpndjcgndbkbkajjnp',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'
-            }
+            headers: getEdgeHeaders()
         });
         const audioChunks = [];
 
@@ -42,7 +57,6 @@ async function getAudio(text, voice) {
                 }
             }
         });
-
         ws.on('error', reject);
     });
 }
