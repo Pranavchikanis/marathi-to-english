@@ -15,9 +15,8 @@ export async function GET(req: Request) {
     const azureRegion = process.env.AZURE_SPEECH_REGION;
 
     if (azureKey && azureRegion) {
-      // Use AarohiNeural (Native Marathi voice). 
-      // NeerjaNeural skipped Devanagari text entirely.
-      const voiceName = 'mr-IN-AarohiNeural';
+      // Use ManoharNeural (Male Native Marathi voice) which may sound slightly more natural.
+      const voiceName = 'mr-IN-ManoharNeural';
       const ssml = `<speak version='1.0' xml:lang='mr-IN'><voice xml:lang='mr-IN' name='${voiceName}'>${text}</voice></speak>`;
 
       const azureResponse = await fetch(`https://${azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
