@@ -47,12 +47,12 @@ export async function generateEvaluationContent(systemInstruction: string, conte
       const groq = getGroqClient();
       
       const response = await groq.chat.completions.create({
-        model: 'mixtral-8x7b-32768',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction + '\n\nIMPORTANT: You must return ONLY valid JSON matching the exact schema requested. Do not include any markdown formatting like ```json or any conversational text.' },
           { role: 'user', content: contents }
         ],
-        response_format: { type: "json_object" },
+
         temperature: 0.2,
       }, { signal: abortController.signal as any });
       
@@ -114,12 +114,12 @@ Do NOT use complex vocabulary for difficulty 1. Keep it highly relatable for beg
 IMPORTANT: You must return ONLY valid JSON. The top level must be a JSON object with a key "exercises" containing the array of objects.`;
 
       const response = await groq.chat.completions.create({
-        model: 'mixtral-8x7b-32768',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: 'Generate the exercises as JSON.' }
         ],
-        response_format: { type: "json_object" },
+
         temperature: 0.7,
       });
 
@@ -160,12 +160,12 @@ Return a JSON object with this exact interface:
 Do not return anything other than the JSON object.`;
 
       const response = await groq.chat.completions.create({
-        model: 'mixtral-8x7b-32768',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: 'Generate the next curriculum topic as JSON.' }
         ],
-        response_format: { type: "json_object" },
+
         temperature: 0.7,
       });
 
@@ -204,14 +204,14 @@ IMPORTANT: You MUST return a JSON object containing two keys:
 2. "audio_text": The EXACT same response, but transliterated entirely into the English alphabet (Romanized Marathi / Hinglish). This is essential so the Indian-English audio engine can read it fluently.`;
 
       const response = await groq.chat.completions.create({
-        model: 'mixtral-8x7b-32768',
+        model: 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemInstruction },
           ...messages
         ],
         temperature: 0.7,
         max_tokens: 200,
-        response_format: { type: 'json_object' }
+
       });
 
       const text = response.choices[0]?.message?.content;

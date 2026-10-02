@@ -31,8 +31,16 @@ export async function processConversationTurn(
 
   try {
     const replyString = await generateConversationReply(formattedMessages);
+    
+    // Safely extract JSON in case the model wraps it in markdown backticks
+    let jsonToParse = replyString;
+    const jsonMatch = replyString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonToParse = jsonMatch[0];
+    }
+
     try {
-      const parsed = JSON.parse(replyString);
+      const parsed = JSON.parse(jsonToParse);
       return { 
         text: parsed.text || replyString, 
         audio_text: parsed.audio_text || parsed.text || replyString 
