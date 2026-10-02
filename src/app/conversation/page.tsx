@@ -69,6 +69,7 @@ export default function ConversationPage() {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response.text,
+        audio_text: response.audio_text,
         timestamp: Date.now(),
       };
       
@@ -119,7 +120,13 @@ export default function ConversationPage() {
               }`}
             >
               {msg.role === 'assistant' && (
-                <Volume2 className="w-4 h-4 mb-2 opacity-50 inline-block mr-2" />
+                <button 
+                  onClick={() => playAudio(msg.audio_text || msg.content, 'en-IN')}
+                  className="hover:bg-surface-default p-1 rounded-full transition-colors mr-1 inline-block -ml-1"
+                  title="Play audio"
+                >
+                  <Volume2 className="w-4 h-4 opacity-50 mb-0.5" />
+                </button>
               )}
               {msg.content}
             </div>
