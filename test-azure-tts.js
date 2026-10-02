@@ -4,14 +4,8 @@ const fs = require('fs');
 async function testAzure() {
   const azureKey = process.env.AZURE_SPEECH_KEY;
   const azureRegion = process.env.AZURE_SPEECH_REGION;
-  
-  if (!azureKey || !azureRegion) {
-    console.error("Missing Azure Keys");
-    return;
-  }
 
-  console.log("Testing Azure TTS with region:", azureRegion);
-  const ssml = `<speak version='1.0' xml:lang='mr-IN'><voice xml:lang='mr-IN' name='mr-IN-AarohiNeural'>नमस्कार, मी मराठी बोलते!</voice></speak>`;
+  const ssml = `<speak version='1.0' xml:lang='en-IN'><voice xml:lang='en-IN' name='en-IN-NeerjaNeural'>मी grammar मध्ये अडचणीत आहे, पण थोडा सराव आणि लक्ष केंद्रित केल्यास सुधारू शकतो. What do you think?</voice></speak>`;
 
   try {
     const response = await fetch(`https://${azureRegion}.tts.speech.microsoft.com/cognitiveservices/v1`, {
@@ -25,10 +19,10 @@ async function testAzure() {
       body: ssml
     });
 
-    console.log("Response Status:", response.status);
     if (response.ok) {
       const buffer = await response.arrayBuffer();
-      console.log("SUCCESS! Audio buffer size:", buffer.byteLength, "bytes");
+      fs.writeFileSync('test-neerja.mp3', Buffer.from(buffer));
+      console.log("SUCCESS! Saved test-neerja.mp3");
     } else {
       console.log("FAILED!", await response.text());
     }

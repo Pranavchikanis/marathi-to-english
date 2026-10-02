@@ -34,20 +34,35 @@ export function usePlayback() {
       return;
     }
     const text = queueRef.current.shift()!;
-    // Use the native voice for fluency (now that symbols are stripped, it should sound much better)
     const url = `/api/tts?text=${encodeURIComponent(text)}&lang=${currentLangRef.current}`;
     
     const audio = audioRef.current;
     if (!audio) return;
     
-    audio.src = url;
-    audio.onended = () => playNextInQueue();
-    audio.onerror = () => playNextInQueue();
-    
-    audio.play().catch(e => {
-      console.error("Audio playback failed", e);
-      setIsPlaying(false); // Stop if browser blocks autoplay
-    });
+    // Fetch as Blob to prevent mobile Safari/Chrome from cutting off streaming audio early
+    fetch(url)
+      .then(res => res.blob())
+      .then(blob => {
+        const blobUrl = URL.createObjectURL(blob);
+        audio.src = blobUrl;
+        audio.onended = () => {
+          URL.revokeObjectURL(blobUrl);
+          playNextInQueue();
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(blobUrl);
+          playNextInQueue();
+        };
+        
+        audio.play().catch(e => {
+          console.error("Audio playback failed", e);
+          setIsPlaying(false);
+        });
+      })
+      .catch(e => {
+        console.error("Audio fetch failed", e);
+        playNextInQueue();
+      });
   }, []);
 
   const playAudio = useCallback((text: string, lang = 'en-IN') => {
