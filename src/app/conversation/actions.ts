@@ -13,7 +13,7 @@ export type ConversationMessage = {
 export async function processConversationTurn(
   history: ConversationMessage[],
   newMessage: string
-): Promise<{ text: string }> {
+): Promise<{ text: string, audio_text: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
@@ -29,8 +29,16 @@ export async function processConversationTurn(
   formattedMessages.push({ role: 'user', content: newMessage });
 
   try {
-    const reply = await generateConversationReply(formattedMessages);
-    return { text: reply };
+    const replyString = await generateConversationReply(formattedMessages);
+    try {
+      const parsed = JSON.parse(replyString);
+      return { 
+        text: parsed.text || replyString, 
+        audio_text: parsed.audio_text || parsed.text || replyString 
+      };
+    } catch (e) {
+      return { text: replyString, audio_text: replyString };
+    }
   } catch (error) {
     console.error('Error in conversation turn:', error);
     throw new Error('Failed to process conversation turn');

@@ -75,8 +75,8 @@ export default function ConversationPage() {
       setMessages(prev => [...prev, newAssistantMsg]);
       
       // Auto-detect if the AI replied in Marathi (Devanagari script)
-      const hasDevanagari = /[\u0900-\u097F]/.test(response.text);
-      playAudio(response.text, hasDevanagari ? 'mr-IN' : 'en-IN');
+      // Actually, we now always pass 'en-IN' because audio_text is completely Romanized!
+      playAudio(response.audio_text, 'en-IN');
       
     } catch (error) {
       console.error(error);
